@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-const Members = ({ eventId, eventTitle }) => {
+const EventMember = ({ eventId, eventTitle }) => {
   const [members, setMembers] = useState([]);
   const [search, setSearch] = useState("");
   const [attendance, setAttendance] = useState({});
@@ -73,6 +73,9 @@ const Members = ({ eventId, eventTitle }) => {
         <h2 className="text-2xl font-bold text-center flex-1">{eventTitle}</h2>
         <div className="w-48"></div>
       </div>
+      <p className="mt-2 text-sm text-gray-600">
+        Tổng: {members.length} | Đã điểm danh: {Object.values(attendance).filter(v => v).length} | Chưa: {Object.values(attendance).filter(v => !v).length}
+      </p>
 
       {filteredMembers.length > 0 ? (
         <div className="overflow-x-auto max-h-[400px] overflow-y-auto shadow rounded-lg">
@@ -98,11 +101,14 @@ const Members = ({ eventId, eventTitle }) => {
                   <td className="py-2 px-4 border border-gray-300">{member.email}</td>
                   <td className="py-2 px-4 border border-gray-300">{member.phone}</td>
                   <td
-                    className={`py-2 px-4 border border-gray-300 font-semibold ${attendance[member.userId] ? "text-green-600" : "text-red-600"
+                    className={`py-2 px-4 border border-gray-300 font-semibold ${attendance[member.userId]
+                      ? "bg-gradient-to-r from-green-400 via-green-500 to-green-600 bg-clip-text text-transparent"
+                      : "bg-gradient-to-r from-red-400 via-red-500 to-red-600 bg-clip-text text-transparent"
                       }`}
                   >
                     {attendance[member.userId] ? "Đã điểm danh" : "Chưa điểm danh"}
                   </td>
+
                   <td className="py-2 px-4 border border-gray-300">
                     <input
                       type="checkbox"
@@ -126,14 +132,20 @@ const Members = ({ eventId, eventTitle }) => {
         <div className="flex justify-end mt-4">
           <button
             onClick={handleSave}
-            className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            className="relative inline-flex items-center justify-center px-6 py-2 overflow-hidden font-bold text-white rounded shadow-lg group
+                 bg-gradient-to-r from-green-400 via-green-500 to-green-600
+                 hover:from-green-500 hover:via-green-600 hover:to-green-700
+                 transition-all duration-300"
           >
-            Lưu điểm danh
+            <span className="absolute inset-0 flex items-center justify-center w-full h-full duration-300 transform translate-x-full
+                       bg-white bg-opacity-10 group-hover:translate-x-0"></span>
+            <span className="relative z-10">Lưu điểm danh</span>
           </button>
         </div>
       )}
+
     </div>
   );
 };
 
-export default Members;
+export default EventMember;

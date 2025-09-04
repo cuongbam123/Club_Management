@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { FaBars, FaUserCircle } from "react-icons/fa";
+import { FaBars } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 export default function Navbar({ toggleSidebar }) {
     const [isNavOpen, setIsNavOpen] = useState(false);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    // Fake user data để test
+    const [user] = useState({
+        name: "Nguyễn Văn A",
+        role: "leader",
+        avatarUrl: "https://i.pravatar.cc/150?img=3",
+    });
 
     const handleNavToggle = () => setIsNavOpen(!isNavOpen);
     const handleDropdownToggle = (e) => {
@@ -34,7 +42,7 @@ export default function Navbar({ toggleSidebar }) {
 
                 {/* Text Leader CLB ở giữa */}
                 <div className="mx-auto fw-bold text-primary fs-5">
-                    <h1> CLB gì ??</h1>
+                    <h1>CLB gì ??</h1>
                 </div>
 
                 {/* Navbar toggler cho mobile */}
@@ -46,14 +54,21 @@ export default function Navbar({ toggleSidebar }) {
                 </button>
 
                 {/* Navbar links */}
-                <div className={`navbar-collapse ${isNavOpen ? "d-block" : "d-none"} d-lg-flex`}>
+                <div
+                    className={`navbar-collapse ${isNavOpen ? "d-block" : "d-none"} d-lg-flex`}
+                >
                     <ul className="navbar-nav ms-auto mt-2 mt-lg-0">
                         <li className="nav-item">
-                            <a className="nav-link" href="#!">Home</a>
+                            <Link className="nav-link" to="/">
+                                Home
+                            </Link>
                         </li>
                         <li className="nav-item">
-                            <a className="nav-link" href="#!">Link</a>
+                            <Link className="nav-link" to="/events">
+                                Events
+                            </Link>
                         </li>
+
                         {/* Dropdown */}
                         <li className={`nav-item dropdown ${isDropdownOpen ? "show" : ""}`}>
                             <a
@@ -62,17 +77,29 @@ export default function Navbar({ toggleSidebar }) {
                                 onClick={handleDropdownToggle}
                                 style={{ gap: "4px" }}
                             >
-                                <FaUserCircle size={28} />
+                                {/* Avatar thật */}
+                                <img
+                                    src={user.avatarUrl || "https://via.placeholder.com/28"}
+                                    alt="avatar"
+                                    className="w-8 h-8 rounded-full object-cover"
+                                />
                                 <span className="custom-caret">▾</span>
                             </a>
+
                             <div
                                 className={`dropdown-menu ${isDropdownOpen ? "show" : ""}`}
                                 style={{ right: "20px", left: "auto" }}
                             >
-                                <a className="dropdown-item" href="#!">Profile</a>
-                                <a className="dropdown-item" href="#!">Settings</a>
+                                <Link className="dropdown-item" to="/profile">
+                                    Profile
+                                </Link>
+                                <a className="dropdown-item" href="#!">
+                                    Settings
+                                </a>
                                 <div className="dropdown-divider"></div>
-                                <a className="dropdown-item" href="#!">Logout</a>
+                                <a className="dropdown-item" href="./src/pages/Loginad.jsx">
+                                    Logout
+                                </a>
                             </div>
                         </li>
                     </ul>

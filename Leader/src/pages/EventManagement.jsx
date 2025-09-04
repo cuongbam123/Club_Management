@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { FiEdit, FiTrash } from "react-icons/fi";
-import Members from "./MemberManagement"; // Component danh sách thành viên
+import EventMember from "./EventMember";
 
 const EventManagement = () => {
     const [events, setEvents] = useState([]);
@@ -16,8 +16,10 @@ const EventManagement = () => {
         startAt: "",
         endAt: "",
         capacity: "",
-        status: "upcoming", // Thêm status
+        status: "upcoming",
+        bannerUrl: "",   // thêm
     });
+
 
     const [selectedEventId, setSelectedEventId] = useState(null);
     const [showMembers, setShowMembers] = useState(false);
@@ -176,7 +178,7 @@ const EventManagement = () => {
                                 <td className="py-4 px-6 text-center">
                                     <span
                                         className={`px-4 py-1.5 rounded-full text-white text-sm font-semibold 
-                ${event.status === "upcoming"
+                                     ${event.status === "upcoming"
                                                 ? "bg-gradient-to-r from-cyan-500 via-blue-500 to-blue-600"
                                                 : event.status === "ongoing"
                                                     ? "bg-gradient-to-r from-green-400 via-green-500 to-green-600"
@@ -266,6 +268,61 @@ const EventManagement = () => {
                                     required
                                 />
                             </div>
+                            {/* Banner sự kiện */}
+                            {/* <div>
+                                <label className="block mb-1">Banner sự kiện</label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={async (e) => {
+                                        const file = e.target.files[0];
+                                        if (file) {
+                                            const formDataFile = new FormData();
+                                            formDataFile.append("banner", file);
+
+                                            // Gọi API upload
+                                            const res = await fetch("http://localhost:5000/api/upload-banner", {
+                                                method: "POST",
+                                                body: formDataFile,
+                                            });
+                                            const data = await res.json();
+
+                                            // Lưu link vào formData.bannerUrl
+                                            setFormData((prev) => ({ ...prev, bannerUrl: data.bannerUrl }));
+                                        }
+                                    }}
+                                    className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
+                                />
+
+                                {formData.bannerUrl && (
+                                    <img
+                                        src={formData.bannerUrl}
+                                        alt="Banner Preview"
+                                        className="mt-2 rounded-lg shadow max-h-40 object-cover"
+                                    />
+                                )}
+                            </div> */}
+
+                            {/* Banner sự kiện */}
+                            <div>
+                                <label className="block mb-1">Banner sự kiện (URL ảnh)</label>
+                                <input
+                                    type="text"
+                                    name="bannerUrl"
+                                    value={formData.bannerUrl || ""}
+                                    onChange={handleChange}
+                                    className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
+                                    placeholder="Dán link ảnh banner"
+                                />
+                                {formData.bannerUrl && (
+                                    <img
+                                        src={formData.bannerUrl}
+                                        alt="Banner Preview"
+                                        className="mt-2 rounded-lg shadow max-h-40 object-cover"
+                                    />
+                                )}
+                            </div>
+
 
                             {/* Thời gian bắt đầu */}
                             <div>
@@ -413,12 +470,18 @@ const EventManagement = () => {
                             <h2 className="text-2xl font-bold">Danh sách thành viên</h2>
                             <button
                                 onClick={() => setShowMembers(false)}
-                                className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                                className="relative inline-flex items-center justify-center px-4 py-2 overflow-hidden font-bold text-white rounded shadow-lg group
+               bg-gradient-to-r from-pink-500 via-red-500 to-red-600
+               hover:from-pink-600 hover:via-red-600 hover:to-red-700
+               transition-all duration-300"
                             >
-                                Đóng
+                                <span className="absolute inset-0 flex items-center justify-center w-full h-full duration-300 transform translate-x-full
+                     bg-white bg-opacity-10 group-hover:translate-x-0"></span>
+                                <span className="relative z-10">Đóng</span>
                             </button>
+
                         </div>
-                        <Members
+                        <EventMember
                             eventId={selectedEventId}
                             eventTitle={events.find(e => e._id === selectedEventId)?.title}
                         />
