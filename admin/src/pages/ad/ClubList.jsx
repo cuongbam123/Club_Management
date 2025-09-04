@@ -3,6 +3,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { FiEdit, FiTrash } from "react-icons/fi";
 
+
 const ClubList = () => {
   const [clubs, setClubs] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -14,7 +15,9 @@ const ClubList = () => {
     president: "",
     description: "",
     memberCount: "",
+    logoUrl: "", // thêm trường logo
   });
+  const testLogo = "https://via.placeholder.com/60x60?text=CLB";
 
   const clubsPerPage = 5;
 
@@ -57,6 +60,7 @@ const ClubList = () => {
       president: club.president,
       description: club.description,
       memberCount: club.memberCount,
+      logoUrl: club.logoUrl || "", // lấy logo từ backend
     });
     setEditId(club._id);
     setShowForm(true);
@@ -86,7 +90,7 @@ const ClubList = () => {
       }
 
       setShowForm(false);
-      setFormData({ name_club: "", president: "", description: "", memberCount: "" });
+      setFormData({ name_club: "", president: "", description: "", memberCount: "", logoUrl: "" });
       setEditId(null);
       fetchClubs();
     } catch (error) {
@@ -119,7 +123,7 @@ const ClubList = () => {
           <button
             onClick={() => {
               setShowForm(true);
-              setFormData({ name: "", description: "", president: "" }); // Ví dụ form CLB
+              setFormData({ name_club: "", description: "", president: "", logoUrl: "" });
             }}
             className="relative inline-flex items-center justify-center px-6 py-3 overflow-hidden font-bold text-white rounded shadow-lg group 
              bg-gradient-to-r from-cyan-500 via-blue-500 to-blue-600 
@@ -129,7 +133,6 @@ const ClubList = () => {
             <span className="absolute inset-0 flex items-center justify-center w-full h-full duration-300 transform translate-x-full bg-white bg-opacity-10 group-hover:translate-x-0"></span>
             <span className="relative z-10">Thêm CLB</span>
           </button>
-
         </div>
       </div>
 
@@ -137,6 +140,7 @@ const ClubList = () => {
         <table className="min-w-full bg-white dark:bg-gray-800 shadow rounded-lg">
           <thead className="bg-gray-100 dark:bg-gray-700">
             <tr>
+              <th className="py-2 px-4 text-left">Logo</th>
               <th className="py-2 px-4 text-left">Tên CLB</th>
               <th className="py-2 px-4 text-left">Chủ nhiệm</th>
               <th className="py-2 px-4 text-left">Số thành viên</th>
@@ -147,9 +151,17 @@ const ClubList = () => {
           <tbody>
             {currentClubs.map((club, idx) => (
               <tr key={club._id ?? idx} className="border-b border-gray-200 dark:border-gray-700">
+                <td className="py-2 px-4">
+                  <img
+                    src={club.logoUrl || testLogo}
+                    alt="Logo CLB"
+                    className="w-16 h-16 object-cover rounded"
+                  />
+
+                </td>
                 <td className="py-2 px-4">{club.name_club}</td>
                 <td className="py-2 px-4">{club.president}</td>
-                <td className="py-2 px-4">{club.memberCount}</td>
+                <td className="py-2 px-4">{club.members?.length || 0}</td>
                 <td className="py-2 px-4">{club.description}</td>
                 <td className="py-2 px-4 flex gap-2">
                   <button onClick={() => handleEdit(club)} title="Sửa" className="text-blue-600">
@@ -205,6 +217,17 @@ const ClubList = () => {
                 />
               </div>
               <div>
+                <label className="block mb-1">URL Logo </label>
+                <input
+                  type="text"
+                  name="logoUrl"
+                  value={formData.logoUrl}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded dark:bg-gray-800 dark:text-white"
+                  placeholder="Nhập URL logo CLB"
+                />
+              </div>
+              <div>
                 <label className="block mb-1">Chủ nhiệm</label>
                 <input
                   type="text"
@@ -215,16 +238,7 @@ const ClubList = () => {
                   required
                 />
               </div>
-              <div>
-                <label className="block mb-1">Số thành viên</label>
-                <input
-                  type="number"
-                  name="memberCount"
-                  value={formData.memberCount}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded dark:bg-gray-800 dark:text-white"
-                />
-              </div>
+
               <div>
                 <label className="block mb-1">Mô tả</label>
                 <textarea
@@ -236,14 +250,14 @@ const ClubList = () => {
                 />
               </div>
 
+
               <div className="flex justify-end gap-4 pt-4">
-                {/* Nút Thêm / Cập nhật CLB */}
                 <button
                   type="submit"
                   className="relative inline-flex items-center justify-center px-6 py-3 overflow-hidden font-bold text-white rounded shadow-lg group
-               bg-gradient-to-r from-cyan-500 via-blue-500 to-blue-600 
-               hover:from-cyan-600 hover:via-blue-600 hover:to-blue-700 
-               transition-all duration-300"
+                   bg-gradient-to-r from-cyan-500 via-blue-500 to-blue-600 
+                   hover:from-cyan-600 hover:via-blue-600 hover:to-blue-700 
+                   transition-all duration-300"
                 >
                   <span className="absolute inset-0 flex items-center justify-center w-full h-full duration-300 transform translate-x-full
                      bg-white bg-opacity-10 group-hover:translate-x-0"></span>
@@ -253,13 +267,13 @@ const ClubList = () => {
                   type="button"
                   onClick={() => {
                     setShowForm(false);
-                    setFormData({ name: "", description: "", president: "" });
+                    setFormData({ name_club: "", description: "", president: "", logoUrl: "" });
                     setEditId(null);
                   }}
                   className="relative inline-flex items-center justify-center px-6 py-3 overflow-hidden font-bold text-white rounded shadow-lg group
-               bg-gradient-to-r from-red-500 via-red-600 to-red-700
-               hover:from-red-600 hover:via-red-700 hover:to-red-800
-               transition-all duration-300"
+                   bg-gradient-to-r from-red-500 via-red-600 to-red-700
+                   hover:from-red-600 hover:via-red-700 hover:to-red-800
+                   transition-all duration-300"
                 >
                   <span className="absolute inset-0 flex items-center justify-center w-full h-full duration-300 transform translate-x-full
                      bg-white bg-opacity-10 group-hover:translate-x-0"></span>

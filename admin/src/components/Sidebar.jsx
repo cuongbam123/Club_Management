@@ -11,18 +11,18 @@ const Sidebar = () => {
           <Home size={20} />
           Dashboard
         </NavLink>
-
+        {/* Quản lý CLB */}
+        <NavLink to="/ad/clubs" className="flex items-center gap-2 hover:text-yellow-400">
+          <Layers size={20} />
+          CLB
+        </NavLink>
         {/* Quản lý User */}
         <NavLink to="/ad/users" className="flex items-center gap-2 hover:text-yellow-400">
           <Users size={20} />
           Người dùng
         </NavLink>
 
-        {/* Quản lý CLB */}
-        <NavLink to="/ad/clubs" className="flex items-center gap-2 hover:text-yellow-400">
-          <Layers size={20} />
-          CLB
-        </NavLink>
+
 
         {/* Quản lý Sự kiện */}
         <NavLink to="/ad/events" className="flex items-center gap-2 hover:text-yellow-400">

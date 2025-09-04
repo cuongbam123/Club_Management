@@ -79,7 +79,7 @@ function DashboardPage() {
             : "bg-gray-200 dark:bg-gray-700 text-black dark:text-white"
             }`}
         >
-          Thành viên mới
+          Chủ nhiệm CLB
         </button>
       </div>
 
