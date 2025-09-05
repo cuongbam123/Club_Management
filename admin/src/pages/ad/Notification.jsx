@@ -3,43 +3,36 @@ import React, { useEffect, useState } from "react";
 const Notification = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState(null); // thông báo đang xem chi tiết
-
-  // Mock data để test
-  const mockNotifications = [
-    {
-      _id: "1",
-      title: "Thông báo họp CLB",
-      creator: { name: "Nguyễn Văn A" },
-      create_time: "2025-09-01T09:00:00",
-      target: "Toàn CLB",
-      content: "Chúng ta sẽ họp vào lúc 18h tại phòng A101.",
-    },
-    {
-      _id: "2",
-      title: "Thông báo đăng ký sự kiện",
-      creator: { name: "Trần Thị B" },
-      create_time: "2025-09-02T14:30:00",
-      target: "Thành viên tham gia",
-      content: "Hãy đăng ký tham gia sự kiện Teambuilding trước ngày 5/9.",
-    },
-    {
-      _id: "3",
-      title: "Thông báo kết thúc CLB",
-      creator: { name: "Lê Văn C" },
-      create_time: "2025-08-31T10:00:00",
-      target: "Toàn CLB",
-      content: "CLB sẽ tạm dừng hoạt động từ ngày 1/9 đến 15/9.",
-    },
-  ];
+  const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      setNotifications(mockNotifications);
-      setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    const fetchNotifications = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) throw new Error("Chưa đăng nhập");
+
+        // ⚠️ Chỉ thêm /notifications/me thôi, không lặp /api
+        const res = await fetch(
+          `${process.env.REACT_APP_API_URL}/notifications/me`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!res.ok) throw new Error("Không thể tải thông báo");
+        const data = await res.json();
+        setNotifications(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNotifications();
   }, []);
 
   if (loading) return <p className="p-4 text-center">Đang tải thông báo...</p>;
@@ -58,10 +51,12 @@ const Notification = () => {
             onClick={() => setSelected(n)}
             className="p-4 border rounded bg-gray-100 dark:bg-gray-800 shadow cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700"
           >
-            <h2 className="text-xl font-semibold">{n.title}</h2>
+            <h2 className="text-lg font-semibold line-clamp-1">
+              {n.message?.slice(0, 50)}...
+            </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Người tạo: {n.creator?.name} | Ngày:{" "}
-              {new Date(n.create_time).toLocaleString("vi-VN")}
+              Ngày gửi:{" "}
+              {new Date(n.createdAt || n.sentAt).toLocaleString("vi-VN")}
             </p>
           </li>
         ))}
@@ -76,13 +71,16 @@ const Notification = () => {
             >
               X
             </button>
-            <h2 className="text-2xl font-bold mb-2">{selected.title}</h2>
+            <h2 className="text-2xl font-bold mb-2">Chi tiết thông báo</h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              Người tạo: {selected.creator?.name} | Ngày:{" "}
-              {new Date(selected.create_time).toLocaleString("vi-VN")} | Đối tượng:{" "}
-              {selected.target}
+              Ngày gửi:{" "}
+              {new Date(selected.createdAt || selected.sentAt).toLocaleString(
+                "vi-VN"
+              )}
             </p>
-            <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded">{selected.content}</div>
+            <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded whitespace-pre-line">
+              {selected.message}
+            </div>
           </div>
         </div>
       )}
