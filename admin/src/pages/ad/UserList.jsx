@@ -12,12 +12,13 @@ const UserList = () => {
   const [editingUser, setEditingUser] = useState(null);
 
   const [form, setForm] = useState({
-    fullname: "",
+    name: "",
     email: "",
     phone: "",
-    address: "", // ✅ thêm địa chỉ
+    address: "",
     clubId: "",
-    role: "member",
+    role: "student",
+    password: "", // thêm password
   });
 
   const token = localStorage.getItem("token");
@@ -26,9 +27,12 @@ const UserList = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get("http://localhost:3001/api/users/admin/users", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await axios.get(
+          "http://localhost:3001/api/users/admin/users",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setUsers(res.data);
       } catch (err) {
         toast.error("Lỗi khi tải danh sách người dùng");
@@ -58,7 +62,7 @@ const UserList = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Đã xoá người dùng!");
-      setUsers(users.filter(u => u._id !== id));
+      setUsers(users.filter((u) => u._id !== id));
     } catch (err) {
       toast.error("Lỗi khi xoá");
     }
@@ -68,12 +72,13 @@ const UserList = () => {
   const openAddForm = () => {
     setEditingUser(null);
     setForm({
-      fullname: "",
+      name: "",
       email: "",
       phone: "",
       address: "",
       clubId: "",
-      role: "member",
+      role: "student",
+      password: "", // reset password
     });
     setShowForm(true);
   };
@@ -81,12 +86,13 @@ const UserList = () => {
   const openEditForm = (user) => {
     setEditingUser(user);
     setForm({
-      fullname: user.fullname || "",
+      name: user.name || "",
       email: user.email || "",
       phone: user.phone || "",
       address: user.address || "",
       clubId: user.clubId || "",
-      role: user.role || "member",
+      role: user.role || "student",
+      password: "", // khi sửa user không bắt buộc đổi pass
     });
     setShowForm(true);
   };
@@ -97,10 +103,10 @@ const UserList = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { fullname, email, phone, address, clubId, role } = form;
+    const { name, email, phone, address, clubId, role, password } = form;
 
-    if (!fullname || !email || !clubId) {
-      toast.error("Vui lòng nhập đầy đủ Họ tên, Email và CLB!");
+    if (!name || !email || !clubId || (!editingUser && !password)) {
+      toast.error("Vui lòng nhập đầy đủ Họ tên, Email, CLB và Mật khẩu!");
       return;
     }
 
@@ -108,23 +114,34 @@ const UserList = () => {
       if (editingUser) {
         await axios.put(
           `http://localhost:3001/api/users/admin/users/${editingUser._id}`,
-          { fullname, email, phone, address, clubId, role },
+          {
+            name,
+            email,
+            phone,
+            address,
+            clubId,
+            role,
+            ...(password ? { password } : {}),
+          },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success("Đã cập nhật người dùng!");
       } else {
         await axios.post(
           `http://localhost:3001/api/users/admin/users`,
-          { fullname, email, phone, address, clubId, role },
+          { name, email, phone, address, clubId, role, password },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         toast.success("Đã thêm người dùng!");
       }
       setShowForm(false);
       // refetch users
-      const res = await axios.get("http://localhost:3001/api/users/admin/users", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        "http://localhost:3001/api/users/admin/users",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setUsers(res.data);
     } catch (err) {
       toast.error("Lỗi khi lưu người dùng");
@@ -134,12 +151,12 @@ const UserList = () => {
   // ----------------- FILTER -----------------
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.fullname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRole =
       roleFilter === "Tất cả" ||
-      (roleFilter === "Leader" && user.role === "leader") ||
-      (roleFilter === "Member" && user.role === "member");
+      (roleFilter === "clubadmin" && user.role === "clubadmin") ||
+      (roleFilter === "student" && user.role === "student");
     return matchesSearch && matchesRole;
   });
 
@@ -147,7 +164,9 @@ const UserList = () => {
   return (
     <div className="p-4 bg-white dark:bg-gray-900 min-h-full">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Quản lý người dùng CLB</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+          Quản lý người dùng CLB
+        </h1>
         <button
           onClick={openAddForm}
           className="flex items-center px-6 py-3 font-bold text-white rounded shadow-lg bg-gradient-to-r from-cyan-500 via-blue-500 to-blue-600 hover:from-cyan-600 hover:via-blue-600 hover:to-blue-700 transition-all duration-300"
@@ -171,8 +190,8 @@ const UserList = () => {
           className="p-2 border rounded dark:bg-gray-800 dark:text-white"
         >
           <option value="Tất cả">Tất cả vai trò</option>
-          <option value="Leader">Chủ nhiệm CLB</option>
-          <option value="Member">Thành viên CLB</option>
+          <option value="clubadmin">Chủ nhiệm CLB</option>
+          <option value="student">Thành viên CLB</option>
         </select>
       </div>
 
@@ -191,19 +210,30 @@ const UserList = () => {
         </thead>
         <tbody>
           {filteredUsers.map((user, index) => (
-            <tr key={user._id || index} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700">
+            <tr
+              key={user._id || index}
+              className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
               <td className="py-2 px-4">{user._id}</td>
-              <td className="py-2 px-4">{user.fullname}</td>
+              <td className="py-2 px-4">{user.name}</td>
               <td className="py-2 px-4">{user.email}</td>
               <td className="py-2 px-4">{user.phone}</td>
               <td className="py-2 px-4">{user.address || "-"}</td>
-              <td className="py-2 px-4">{user.clubName || "Chưa gán"}</td>
-              <td className="py-2 px-4">{user.role === "leader" ? "Chủ nhiệm CLB" : "Thành viên CLB"}</td>
+              <td className="py-2 px-4">{user.clubName || "Chưa gia nhập"}</td>
+              <td className="py-2 px-4">
+                {user.role === "clubadmin" ? "Chủ nhiệm CLB" : "Thành viên CLB"}
+              </td>
               <td className="py-2 px-4 flex gap-2">
-                <button onClick={() => openEditForm(user)} className="text-blue-600 hover:text-blue-800">
+                <button
+                  onClick={() => openEditForm(user)}
+                  className="text-blue-600 hover:text-blue-800"
+                >
                   <Edit size={18} />
                 </button>
-                <button onClick={() => handleDelete(user._id)} className="text-red-600 hover:text-red-800">
+                <button
+                  onClick={() => handleDelete(user._id)}
+                  className="text-red-600 hover:text-red-800"
+                >
                   <Trash2 size={18} />
                 </button>
               </td>
@@ -213,20 +243,24 @@ const UserList = () => {
       </table>
 
       {filteredUsers.length === 0 && (
-        <p className="mt-4 text-center text-gray-500 dark:text-gray-400">Không có người dùng nào phù hợp.</p>
+        <p className="mt-4 text-center text-gray-500 dark:text-gray-400">
+          Không có người dùng nào phù hợp.
+        </p>
       )}
 
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-900 p-6 rounded-lg w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4">{editingUser ? "Sửa người dùng" : "Thêm người dùng"}</h2>
+            <h2 className="text-xl font-bold mb-4">
+              {editingUser ? "Sửa người dùng" : "Thêm người dùng"}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block mb-1">Họ và tên</label>
                 <input
-                  name="fullname"
+                  name="name"
                   type="text"
-                  value={form.fullname}
+                  value={form.name}
                   onChange={handleChange}
                   className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
                   required
@@ -241,6 +275,20 @@ const UserList = () => {
                   onChange={handleChange}
                   className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
                   required
+                />
+              </div>
+              <div>
+                <label className="block mb-1">Mật khẩu</label>
+                <input
+                  name="password"
+                  type="password"
+                  value={form.password}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
+                  placeholder={
+                    editingUser ? "Để trống nếu không đổi mật khẩu" : ""
+                  }
+                  required={!editingUser} // thêm bắt buộc khi tạo mới, không bắt buộc khi edit
                 />
               </div>
               <div>
@@ -274,7 +322,9 @@ const UserList = () => {
                 >
                   <option value="">Chọn CLB</option>
                   {clubs.map((club) => (
-                    <option key={club._id} value={club._id}>{club.name}</option>
+                    <option key={club._id} value={club._id}>
+                      {club.name}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -286,8 +336,8 @@ const UserList = () => {
                   onChange={handleChange}
                   className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
                 >
-                  <option value="member">Thành viên CLB</option>
-                  <option value="leader">Chủ nhiệm CLB</option>
+                  <option value="student">Học Sinh</option>
+                  <option value="clubadmin">Chủ nhiệm CLB</option>
                 </select>
               </div>
               <div className="flex justify-end gap-4 pt-4">
@@ -299,9 +349,13 @@ const UserList = () => {
                hover:from-cyan-600 hover:via-blue-600 hover:to-blue-700
                transition-all duration-300"
                 >
-                  <span className="absolute inset-0 flex items-center justify-center w-full h-full duration-300 transform translate-x-full
-                     bg-white bg-opacity-10 group-hover:translate-x-0"></span>
-                  <span className="relative z-10">{editingUser ? "Lưu" : "Thêm"}</span>
+                  <span
+                    className="absolute inset-0 flex items-center justify-center w-full h-full duration-300 transform translate-x-full
+                     bg-white bg-opacity-10 group-hover:translate-x-0"
+                  ></span>
+                  <span className="relative z-10">
+                    {editingUser ? "Lưu" : "Thêm"}
+                  </span>
                 </button>
 
                 {/* Nút Huỷ */}
@@ -313,12 +367,12 @@ const UserList = () => {
                hover:from-red-600 hover:via-red-700 hover:to-red-800
                transition-all duration-300"
                 >
-                  <span className="absolute inset-0 flex items-center justify-center w-full h-full duration-300 transform translate-x-full
-                     bg-white bg-opacity-10 group-hover:translate-x-0"></span>
+                  <span
+                    className="absolute inset-0 flex items-center justify-center w-full h-full duration-300 transform translate-x-full
+                     bg-white bg-opacity-10 group-hover:translate-x-0"
+                  ></span>
                   <span className="relative z-10">Huỷ</span>
                 </button>
-
-
               </div>
             </form>
           </div>

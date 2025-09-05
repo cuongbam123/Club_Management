@@ -6,9 +6,25 @@ const { connectDB } = require("./config/database");
 dotenv.config();
 
 const app = express();
-app.use(cors());
+// Cấu hình CORS cho phép frontend trên localhost:3000 gửi yêu cầu
+const corsOptions = {
+  origin: 'http://localhost:3000', // Đảm bảo frontend chạy trên port này
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],  // Cho phép các phương thức này
+};
+
+app.use(cors(corsOptions));
+
+// app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
+
+
+const path = require("path");
+
+// cho phép truy cập file trong /uploads
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/api/uploads", express.static(path.join(__dirname, "..", "uploads")));
+
 
 connectDB(process.env.MONGO_URI);
 
