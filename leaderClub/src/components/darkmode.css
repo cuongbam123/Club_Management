@@ -1,0 +1,35 @@
+body.dark-mode {
+    background-color: #121212;
+    color: #fff;
+}
+
+body.dark-mode .content {
+    background-color: #1e1e1e;
+    color: #fff;
+}
+
+body.dark-mode .table {
+    background-color: #1e1e1e;
+    color: #fff;
+}
+
+.table-container {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 16px;
+}
+
+body.dark-mode .table-container {
+    background: #1e1e1e;
+}
+
+.btn-action {
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.btn-action:hover {
+    transform: scale(1.1);
+    color: #ff4d4f;
+    /* đỏ khi hover */
+}
