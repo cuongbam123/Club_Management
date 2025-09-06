@@ -31,8 +31,17 @@ const createClub = async (req, res) => {
 // ======================= Lấy danh sách CLB =======================
 const listClubs = async (req, res) => {
   try {
-    const clubs = await Club.find().populate("president", "name email role");
-    res.json(clubs);
+    const clubs = await Club.find().populate("president", "name email role").lean();
+
+    // lấy memberCount cho từng club
+    const clubsWithCount = await Promise.all(
+      clubs.map(async (club) => {
+        const count = await User.countDocuments({ clubId: club._id });
+        return { ...club, memberCount: count };
+      })
+    );
+
+    res.json(clubsWithCount);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
