@@ -1,5 +1,7 @@
-import React, { useState } from "react";
+// src/components/Profile.jsx
+import React, { useState, } from "react";
 
+// Dữ liệu mẫu
 const sampleUser = {
     _id: "1",
     name: "Nguyễn Văn A",
@@ -16,38 +18,52 @@ const sampleClub = {
     name: "CLB Bóng Đá",
 };
 
-const Profile = () => {
+const Profile = ({ onUserUpdate }) => {
+    // State quản lý user nội bộ
     const [user, setUser] = useState(sampleUser);
-    const [clubName] = useState(sampleClub.name);
-    const [editMode, setEditMode] = useState(false);
-    const [formData, setFormData] = useState({
-        name: sampleUser.name,
-        email: sampleUser.email,
-        phone: sampleUser.phone,
-        address: sampleUser.address,
-        avatarUrl: sampleUser.avatarUrl,
-    });
 
+    // State chỉnh sửa form
+    const [formData, setFormData] = useState({ ...sampleUser });
+    const [editMode, setEditMode] = useState(false);
+
+    // Club name
+    const [clubName] = useState(sampleClub.name);
+
+    // Khi lưu thông tin
     const handleSave = () => {
-        setUser({ ...user, ...formData });
+        const updatedUser = { ...user, ...formData };
+        setUser(updatedUser);
         setEditMode(false);
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+
+        // Gọi callback để NavBar live update
+        if (onUserUpdate) onUserUpdate(updatedUser);
+
         alert("Lưu thông tin thành công!");
     };
 
+    // Khi thay đổi avatar
     const handleAvatarChange = (e) => {
         const file = e.target.files[0];
         if (file) {
             const url = URL.createObjectURL(file);
             setFormData({ ...formData, avatarUrl: url });
+            const updatedUser = { ...user, avatarUrl: url };
+            setUser(updatedUser);
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+            if (onUserUpdate) onUserUpdate(updatedUser);
         }
     };
 
     return (
         <div className="flex items-start justify-center min-h-screen bg-gray-100 dark:bg-gray-900 p-4 pt-20">
             <div className="w-full max-w-md p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800 dark:text-white">
+                <h2 className="text-4xl font-extrabold mb-8 text-center
+    bg-gradient-to-r from-cyan-400 via-blue-500 to-blue-800
+    bg-clip-text text-transparent drop-shadow-md italic tracking-widest">
                     Thông tin cá nhân
                 </h2>
+
 
                 {/* Avatar */}
                 <div className="flex justify-center mb-4 flex-col items-center">
@@ -68,69 +84,31 @@ const Profile = () => {
 
                 {/* Profile info */}
                 <div className="space-y-3">
-                    <div>
-                        <span className="font-semibold">Họ tên: </span>
-                        {editMode ? (
-                            <input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, name: e.target.value })
-                                }
-                                className="w-full px-2 py-1 border rounded mt-1 text-black"
-                            />
-                        ) : (
-                            <span>{user.name}</span>
-                        )}
-                    </div>
-
-                    <div>
-                        <span className="font-semibold">Email: </span>
-                        {editMode ? (
-                            <input
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, email: e.target.value })
-                                }
-                                className="w-full px-2 py-1 border rounded mt-1 text-black"
-                            />
-                        ) : (
-                            <span>{user.email}</span>
-                        )}
-                    </div>
-
-                    <div>
-                        <span className="font-semibold">Số điện thoại: </span>
-                        {editMode ? (
-                            <input
-                                type="text"
-                                value={formData.phone}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, phone: e.target.value })
-                                }
-                                className="w-full px-2 py-1 border rounded mt-1 text-black"
-                            />
-                        ) : (
-                            <span>{user.phone}</span>
-                        )}
-                    </div>
-
-                    <div>
-                        <span className="font-semibold">Địa chỉ: </span>
-                        {editMode ? (
-                            <input
-                                type="text"
-                                value={formData.address}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, address: e.target.value })
-                                }
-                                className="w-full px-2 py-1 border rounded mt-1 text-black"
-                            />
-                        ) : (
-                            <span>{user.address}</span>
-                        )}
-                    </div>
+                    {["name", "email", "phone", "address"].map((field) => (
+                        <div key={field}>
+                            <span className="font-semibold">
+                                {field === "name"
+                                    ? "Họ tên: "
+                                    : field === "email"
+                                        ? "Email: "
+                                        : field === "phone"
+                                            ? "Số điện thoại: "
+                                            : "Địa chỉ: "}
+                            </span>
+                            {editMode ? (
+                                <input
+                                    type={field === "email" ? "email" : "text"}
+                                    value={formData[field]}
+                                    onChange={(e) =>
+                                        setFormData({ ...formData, [field]: e.target.value })
+                                    }
+                                    className="w-full px-2 py-1 border rounded mt-1 text-black"
+                                />
+                            ) : (
+                                <span>{user[field]}</span>
+                            )}
+                        </div>
+                    ))}
 
                     <div>
                         <span className="font-semibold">Vai trò: </span>

@@ -9,7 +9,7 @@ export default function Layout() {
             <Navbar />
 
             {/* Nội dung chính, chừa khoảng trống cho Navbar */}
-            <main className="flex-1 pt-[170px] px-6">
+            <main className="pt-[140px]">
                 <Outlet />
             </main>
         </div>

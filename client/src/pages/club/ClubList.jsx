@@ -1,31 +1,56 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import ClubDetail from "./ClubDetail";
-import EventClub from "./EventClub";
 
-// Dữ liệu CLB
+// Dữ liệu CLB mẫu
 const clubsNotJoined = [
-    { _id: "c1", name: "CLB Văn Hóa", description: "CLB Văn Hóa dành cho những bạn yêu thích văn hóa.", logoUrl: "https://cdn.hoabinhevents.com/hcmc/wp-content/uploads/2024/05/23091703/mau-thiet-ke-backdrop-le-ky-niem.jpg", president: "Nguyễn Văn A" },
-    { _id: "c2", name: "CLB Thể Thao", description: "CLB Thể Thao giúp bạn rèn luyện thể chất và tinh thần đồng đội.", logoUrl: "https://images.tkbcdn.com/2/608/332/ts/ds/a6/0a/4a/60e9e35f58d00a4df2f987fe5f02803c.jpg", president: "Trần Thị B" },
-    { _id: "c3", name: "CLB Công Nghệ", description: "CLB Công Nghệ dành cho các bạn yêu thích lập trình và công nghệ mới.", logoUrl: "https://images.tkbcdn.com/2/608/332/ts/ds/ce/24/eb/0f20e8747f8181763f81d26d989e46bd.png", president: "Lê Văn C" },
+    {
+        _id: "c1",
+        name: "CLB Văn Hóa",
+        description: "CLB Văn Hóa dành cho những bạn yêu thích văn hóa.",
+        logoUrl: "https://cdn.hoabinhevents.com/hcmc/wp-content/uploads/2024/05/23091703/mau-thiet-ke-backdrop-le-ky-niem.jpg",
+        president: "Nguyễn Văn A"
+    },
+    {
+        _id: "c2",
+        name: "CLB Thể Thao",
+        description: "CLB Thể Thao giúp bạn rèn luyện thể chất và tinh thần đồng đội.",
+        logoUrl: "https://images.tkbcdn.com/2/608/332/ts/ds/a6/0a/4a/60e9e35f58d00a4df2f987fe5f02803c.jpg",
+        president: "Trần Thị B"
+    },
+    {
+        _id: "c3",
+        name: "CLB Công Nghệ",
+        description: "CLB Công Nghệ dành cho các bạn yêu thích lập trình và công nghệ mới.",
+        logoUrl: "https://images.tkbcdn.com/2/608/332/ts/ds/ce/24/eb/0f20e8747f8181763f81d26d989e46bd.png",
+        president: "Lê Văn C"
+    },
 ];
 
 export default function ClubList() {
-    const [currentView, setCurrentView] = useState("clubs"); // clubs | clubDetail | events
     const [selectedClub, setSelectedClub] = useState(null);
+    const navigate = useNavigate();
 
+    // Callback khi join CLB
     const handleJoinClub = (club) => {
-        setSelectedClub(club);
-        setCurrentView("events"); // chuyển sang danh sách sự kiện
+        navigate("/event-club", { state: { club } });
     };
 
     return (
         <div className="p-5 max-w-3xl mx-auto">
-            {/* Danh sách CLB */}
-            {currentView === "clubs" && (
+            {selectedClub ? (
+                <ClubDetail
+                    club={selectedClub}
+                    onBack={() => setSelectedClub(null)}
+                    onJoin={handleJoinClub}
+                />
+            ) : (
                 <>
-                    <h2 className="text-4xl font-extrabold mb-8 text-center
-    bg-gradient-to-r from-cyan-400 via-blue-500 to-blue-800
-    bg-clip-text text-transparent drop-shadow-md italic tracking-widest">
+                    <h2
+                        className="text-4xl font-extrabold mt-5 mb-8 text-center
+             bg-gradient-to-r from-cyan-400 via-blue-500 to-blue-800
+             bg-clip-text text-transparent drop-shadow-md italic tracking-widest"
+                    >
                         Danh sách CLB
                     </h2>
 
@@ -35,10 +60,7 @@ export default function ClubList() {
                             <li
                                 key={club._id}
                                 className="flex items-center p-6 border border-gray-300 rounded-xl cursor-pointer hover:bg-gray-100 transition-all shadow-lg w-full"
-                                onClick={() => {
-                                    setSelectedClub(club);
-                                    setCurrentView("clubDetail");
-                                }}
+                                onClick={() => setSelectedClub(club)}
                             >
                                 <img
                                     src={club.logoUrl}
@@ -53,20 +75,6 @@ export default function ClubList() {
                         ))}
                     </ul>
                 </>
-            )}
-
-            {/* Chi tiết CLB */}
-            {currentView === "clubDetail" && selectedClub && (
-                <ClubDetail
-                    club={selectedClub}
-                    onBack={() => setCurrentView("clubs")}
-                    onJoin={handleJoinClub}
-                />
-            )}
-
-            {/* Danh sách sự kiện của CLB */}
-            {currentView === "events" && selectedClub && (
-                <EventClub club={selectedClub} />
             )}
         </div>
     );

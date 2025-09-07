@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -16,26 +16,29 @@ import EventClub from "./pages/club/EventClub";
 import Notifications from "./pages/user/Notifications";
 import RegistrationStatus from "./pages/user/RegistrationStatus";
 
-
-
 // ================= Components =================
 import Layout from "./components/Layout";
 import EventDetail from "./components/EventDetail";
 import Profile from "./components/Profile";
 import Histo from "./components/Histo";
 
-// Component route mặc định cho "/"
+// Route mặc định cho "/"
 function DefaultRoute() {
   const userClub = JSON.parse(localStorage.getItem("userClub"));
-
   if (userClub && userClub.id) {
     return <Navigate to={`/clubs/${userClub.id}`} replace />;
   }
-
   return <ClubList />;
 }
 
 function App() {
+  // ✅ useState ở top-level
+  const [, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+
+  // ✅ useEffect chỉ để xử lý token FE
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tokenFromFE = params.get("token");
@@ -56,12 +59,12 @@ function App() {
         {/* User routes bọc trong Layout */}
         <Route path="/" element={<Layout />}>
           <Route index element={<DefaultRoute />} /> {/* route mặc định "/" */}
-          <Route path="profile" element={<Profile />} />
+          <Route path="/profile" element={<Profile onUserUpdate={setUser} />} />
           <Route path="hist" element={<Histo />} />
           <Route path="clubs" element={<ClubList />} />
-          <Route path="clubs/:id" element={<ClubDetail />} /> {/* ✅ hiển thị chi tiết CLB */}
-          <Route path="clubs/:id/events" element={<EventClub />} />
-          <Route path="clubs/:id/events/:eventId" element={<EventDetail />} />
+          <Route path="clubs/:id" element={<ClubDetail />} />
+          <Route path="/event-club" element={<EventClub />} />
+          <Route path="/event-club/:eventId" element={<EventDetail />} />
           <Route path="events" element={<EventList />} />
           <Route path="events/:id" element={<EventDetail />} />
           <Route path="registration-status" element={<RegistrationStatus />} />
