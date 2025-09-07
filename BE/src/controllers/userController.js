@@ -34,20 +34,26 @@ const createUser = async (req, res) => {
   try {
     const { name, email, password, phone, address, clubId, role } = req.body;
 
-    if (!name || !email || !password || !clubId) {
+    // Chỉ check name, email, password là bắt buộc
+    if (!name || !email || !password) {
       return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
     }
 
-    const newUser = await User.create({
+    const userData = {
       name,
       email,
-      password, // chưa hash
+      password, // TODO: hash password trước khi lưu
       phone,
       address,
-      clubId,
-      role
-    });
+      role,
+    };
 
+    // Nếu có clubId thì mới thêm
+    if (clubId) {
+      userData.clubId = clubId;
+    }
+
+    const newUser = await User.create(userData);
     res.status(201).json(newUser);
   } catch (err) {
     console.error("Lỗi createUser:", err);
@@ -61,7 +67,14 @@ const updateUser = async (req, res) => {
   try {
     const { name, email, phone, address, clubId, role, password } = req.body;
 
-    const updateData = { name, email, phone, address, clubId, role };
+    const updateData = { name, email, phone, address, role };
+
+    if (clubId === "") {
+      updateData.clubId = null;   // cho phép bỏ CLB
+    } else if (clubId) {
+      updateData.clubId = clubId; // gán CLB mới
+    }
+
     if (password) updateData.password = password;
 
     const u = await User.findByIdAndUpdate(req.params.id, updateData, { new: true })
@@ -69,6 +82,7 @@ const updateUser = async (req, res) => {
       .populate("clubId", "name");
 
     if (!u) return res.status(404).json({ message: "User not found" });
+
     res.json({
       ...u.toObject(),
       clubName: u.clubId ? u.clubId.name : null,
@@ -77,6 +91,7 @@ const updateUser = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // ================== CHỈ ĐỔI ROLE ==================
 const updateRole = async (req, res) => {

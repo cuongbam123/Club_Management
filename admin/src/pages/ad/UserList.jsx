@@ -90,7 +90,7 @@ const UserList = () => {
       email: user.email || "",
       phone: user.phone || "",
       address: user.address || "",
-      clubId: user.clubId || "",
+      clubId: user.clubId?._id || "",
       role: user.role || "student",
       password: "", // khi sửa user không bắt buộc đổi pass
     });
@@ -102,51 +102,49 @@ const UserList = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const { name, email, phone, address, clubId, role, password } = form;
+  e.preventDefault();
+  const { name, email, phone, address, clubId, role, password } = form;
 
-    if (!name || !email || !clubId || (!editingUser && !password)) {
-      toast.error("Vui lòng nhập đầy đủ Họ tên, Email, CLB và Mật khẩu!");
-      return;
+  if (!name || !email || (!editingUser && !password)) {
+    toast.error("Vui lòng nhập đầy đủ Họ tên, Email và Mật khẩu!");
+    return;
+  }
+
+  try {
+    const payload = { name, email, phone, address, role };
+    if (clubId && clubId.trim() !== "") {
+      payload.clubId = clubId;
     }
+    if (password) payload.password = password;
 
-    try {
-      if (editingUser) {
-        await axios.put(
-          `http://localhost:3001/api/users/admin/users/${editingUser._id}`,
-          {
-            name,
-            email,
-            phone,
-            address,
-            clubId,
-            role,
-            ...(password ? { password } : {}),
-          },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        toast.success("Đã cập nhật người dùng!");
-      } else {
-        await axios.post(
-          `http://localhost:3001/api/users/admin/users`,
-          { name, email, phone, address, clubId, role, password },
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        toast.success("Đã thêm người dùng!");
-      }
-      setShowForm(false);
-      // refetch users
-      const res = await axios.get(
-        "http://localhost:3001/api/users/admin/users",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+    if (editingUser) {
+      await axios.put(
+        `http://localhost:3001/api/users/admin/users/${editingUser._id}`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      setUsers(res.data);
-    } catch (err) {
-      toast.error("Lỗi khi lưu người dùng");
+      toast.success("Đã cập nhật người dùng!");
+    } else {
+      await axios.post(
+        `http://localhost:3001/api/users/admin/users`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      toast.success("Đã thêm người dùng!");
     }
-  };
+
+    setShowForm(false);
+    // refetch users
+    const res = await axios.get(
+      "http://localhost:3001/api/users/admin/users",
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    setUsers(res.data);
+  } catch (err) {
+    toast.error("Lỗi khi lưu người dùng");
+  }
+};
+
 
   // ----------------- FILTER -----------------
   const filteredUsers = users.filter((user) => {
@@ -318,9 +316,8 @@ const UserList = () => {
                   value={form.clubId}
                   onChange={handleChange}
                   className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
-                  required
                 >
-                  <option value="">Chọn CLB</option>
+                  <option value="">-- Không CLB --</option>
                   {clubs.map((club) => (
                     <option key={club._id} value={club._id}>
                       {club.name}

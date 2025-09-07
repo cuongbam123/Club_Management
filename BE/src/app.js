@@ -38,6 +38,8 @@ app.use("/api/clubs", require("./routes/clubsRoutes"));
 app.use("/api/events", require("./routes/eventsRoutes"));
 app.use("/api/registrations", require("./routes/registrationsRoutes"));
 app.use("/api/notifications", require("./routes/notificationsRoutes"));
+app.use("/api/statistics", require("./routes/statisticsRoutes"));
+
 
 // Not found
 app.use((req, res) => res.status(404).json({ message: "Not found" }));
