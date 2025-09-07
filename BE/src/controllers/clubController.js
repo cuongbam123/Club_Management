@@ -58,7 +58,7 @@ const getClubDetail = async (req, res) => {
 
     // Lấy danh sách thành viên
     const members = await User.find({ clubId: club._id })
-      .select("name email role")
+       .select("name email role joinedAt")
       .lean();
 
     res.json({ ...club, members });
@@ -119,6 +119,7 @@ const addMember = async (req, res) => {
     if (!user) return res.status(404).json({ message: "User not found" });
 
     user.clubId = clubId;
+    user.joinedAt = new Date()
     await user.save();
 
     res.json({ message: "Member added to club", user });
@@ -158,7 +159,7 @@ const listMembers = async (req, res) => {
     if (!club) return res.status(404).json({ message: "Club not found" });
 
     const members = await User.find({ clubId: club._id })
-      .select("name email role")
+      .select("name email role joinedAt") // giữ luôn joinedAt
       .lean();
 
     res.json(members);
@@ -166,6 +167,37 @@ const listMembers = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+const getClubLogo = async (req, res) => {
+  try {
+    // lấy user từ token (req.user đã có nhờ verifyToken)
+    const user = await User.findById(req.user._id).populate("clubId", "name logoUrl");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // nếu user chưa có club
+    if (!user.clubId) {
+      return res.json({
+        clubName: "CLB ???",
+        logoUrl: null,
+      });
+    }
+
+    const club = user.clubId;
+
+    res.json({
+      clubName: club.name || "CLB ???",
+      logoUrl: club.logoUrl || null,
+    });
+  } catch (err) {
+    console.error("Error getClubLogo:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
 
 module.exports = {
   createClub,
@@ -176,4 +208,5 @@ module.exports = {
   addMember,
   removeMember,
   listMembers,
+  getClubLogo,
 };

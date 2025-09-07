@@ -16,11 +16,15 @@ router.post(
   clubController.createClub
 );
 
+// Lấy logo của CLB theo user hiện tại
+router.get("/logo", verifyToken, clubController.getClubLogo);
+
 // Lấy danh sách CLB (public)
 router.get("/", clubController.listClubs);
 
 // Lấy chi tiết CLB theo id (public)
 router.get("/:id", clubController.getClubDetail);
+
 
 // Cập nhật CLB
 router.put(

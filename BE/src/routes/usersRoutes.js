@@ -18,6 +18,8 @@ router.get(
   }
 );
 
+router.get("/users/me", verifyToken, user.getMe);
+
 // ================== SUPERADMIN QUẢN LÝ USERS ==================
 router.get("/admin/users", verifyToken, requireRole("superadmin"), user.listUsers);
 router.get("/admin/users/:id", verifyToken, requireSelfOrRole("superadmin"), user.getUser);

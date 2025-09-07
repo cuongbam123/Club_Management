@@ -1,4 +1,6 @@
 const User = require("../models/User");
+const Club = require("../models/Club");
+const bcrypt = require("bcryptjs");
 
 // ================== LẤY TẤT CẢ USERS ==================
 const listUsers = async (req, res) => {
@@ -29,28 +31,29 @@ const getUser = async (req, res) => {
 };
 
 // ================== TẠO USER MỚI ==================
-// controllers/userController.js
 const createUser = async (req, res) => {
   try {
     const { name, email, password, phone, address, clubId, role } = req.body;
 
-    // Chỉ check name, email, password là bắt buộc
     if (!name || !email || !password) {
       return res.status(400).json({ message: "Thiếu thông tin bắt buộc" });
     }
 
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const userData = {
       name,
       email,
-      password, // TODO: hash password trước khi lưu
+      password: hashedPassword,
       phone,
       address,
       role,
     };
 
-    // Nếu có clubId thì mới thêm
     if (clubId) {
       userData.clubId = clubId;
+      userData.joinedAt = new Date();
     }
 
     const newUser = await User.create(userData);
@@ -69,28 +72,32 @@ const updateUser = async (req, res) => {
 
     const updateData = { name, email, phone, address, role };
 
-    if (clubId === "") {
-      updateData.clubId = null;   // cho phép bỏ CLB
-    } else if (clubId) {
-      updateData.clubId = clubId; // gán CLB mới
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10); // hash lại nếu đổi mật khẩu
     }
 
-    if (password) updateData.password = password;
+    if (clubId) {
+      updateData.clubId = clubId;
+      updateData.joinedAt = new Date();
+    }
 
-    const u = await User.findByIdAndUpdate(req.params.id, updateData, { new: true })
-      .select("-password")
-      .populate("clubId", "name");
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    );
 
-    if (!u) return res.status(404).json({ message: "User not found" });
+    if (!updatedUser) {
+      return res.status(404).json({ message: "Không tìm thấy user" });
+    }
 
-    res.json({
-      ...u.toObject(),
-      clubName: u.clubId ? u.clubId.name : null,
-    });
+    res.json(updatedUser);
   } catch (err) {
+    console.error("Lỗi updateUser:", err);
     res.status(500).json({ message: err.message });
   }
 };
+
 
 
 // ================== CHỈ ĐỔI ROLE ==================
@@ -115,6 +122,30 @@ const removeUser = async (req, res) => {
   }
 };
 
+// Lấy user hiện tại từ token
+const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id) // 👈 dùng _id thay vì id
+      .select("-password")
+      .populate("clubId", "name logoUrl");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.json({
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      clubName: user.clubId ? user.clubId.name : null,
+      clubLogo: user.clubId ? user.clubId.logoUrl : null,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+
 module.exports = {
   listUsers,
   getUser,
@@ -122,4 +153,5 @@ module.exports = {
   updateUser,
   updateRole,
   removeUser,
+  getMe,
 };

@@ -1,5 +1,7 @@
 const Club = require("../models/Club");
 const User = require("../models/User");
+const Event = require("../models/Event");
+
 
 const getOverview = async (req, res) => {
   try {
@@ -57,4 +59,47 @@ const getOverview = async (req, res) => {
   }
 };
 
-module.exports = { getOverview };
+// Thống kê sự kiện: số đăng ký & số tham gia (checkin)
+const eventStats = async (req, res) => {
+  try {
+    const events = await Event.find().populate("participants").populate("attended");
+    const stats = events.map(e => ({
+      name: e.title,
+      dangKy: e.participants.length,
+      thamGia: e.attended.length,
+    }));
+    res.json(stats);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Thống kê thành viên theo tuần (7 ngày gần nhất)
+const memberStatsWeekly = async (req, res) => {
+  try {
+    const today = new Date();
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 6);
+
+    const users = await User.aggregate([
+      {
+        $match: {
+          createdAt: { $gte: sevenDaysAgo, $lte: today }
+        }
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%d/%m", date: "$createdAt" } },
+          thanhVien: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    res.json(users.map(u => ({ name: u._id, thanhVien: u.thanhVien })));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { getOverview, memberStatsWeekly, eventStats };
