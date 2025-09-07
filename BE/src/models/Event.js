@@ -7,10 +7,10 @@ const eventSchema = new mongoose.Schema({
   startAt: { type: Date, required: true },
   endAt: { type: Date, required: true },
   capacity: Number,
-  participantsCount: { type: Number, default: 0 },
-  attendedCount: { type: Number, default: 0 },
+  participants: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // ai đã đăng ký
+  attended: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // ai đã checkin
   bannerUrl: String,
-  cancelDeadline: { type: Date },
+  cancelDeadline: Date,
   status: {
     type: String,
     enum: ["upcoming", "ongoing", "finished", "cancelled"],

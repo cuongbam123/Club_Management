@@ -18,7 +18,7 @@ const UserList = () => {
     address: "",
     clubId: "",
     role: "student",
-    password: "", // thêm password
+    password: "",
   });
 
   const token = localStorage.getItem("token");
@@ -29,12 +29,10 @@ const UserList = () => {
       try {
         const res = await axios.get(
           "http://localhost:3001/api/users/admin/users",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         setUsers(res.data);
-      } catch (err) {
+      } catch {
         toast.error("Lỗi khi tải danh sách người dùng");
       }
     };
@@ -45,7 +43,7 @@ const UserList = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setClubs(res.data);
-      } catch (err) {
+      } catch {
         toast.error("Lỗi khi tải danh sách CLB");
       }
     };
@@ -63,7 +61,7 @@ const UserList = () => {
       });
       toast.success("Đã xoá người dùng!");
       setUsers(users.filter((u) => u._id !== id));
-    } catch (err) {
+    } catch {
       toast.error("Lỗi khi xoá");
     }
   };
@@ -78,7 +76,7 @@ const UserList = () => {
       address: "",
       clubId: "",
       role: "student",
-      password: "", // reset password
+      password: "",
     });
     setShowForm(true);
   };
@@ -92,7 +90,7 @@ const UserList = () => {
       address: user.address || "",
       clubId: user.clubId?._id || "",
       role: user.role || "student",
-      password: "", // khi sửa user không bắt buộc đổi pass
+      password: "",
     });
     setShowForm(true);
   };
@@ -101,50 +99,55 @@ const UserList = () => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
+  // ----------------- SUBMIT -----------------
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  const { name, email, phone, address, clubId, role, password } = form;
+    e.preventDefault();
+    const { name, email, phone, address, clubId, role, password } = form;
 
-  if (!name || !email || (!editingUser && !password)) {
-    toast.error("Vui lòng nhập đầy đủ Họ tên, Email và Mật khẩu!");
-    return;
-  }
-
-  try {
-    const payload = { name, email, phone, address, role };
-    if (clubId && clubId.trim() !== "") {
-      payload.clubId = clubId;
-    }
-    if (password) payload.password = password;
-
-    if (editingUser) {
-      await axios.put(
-        `http://localhost:3001/api/users/admin/users/${editingUser._id}`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success("Đã cập nhật người dùng!");
-    } else {
-      await axios.post(
-        `http://localhost:3001/api/users/admin/users`,
-        payload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      toast.success("Đã thêm người dùng!");
+    if (!name || !email || (!editingUser && !password)) {
+      toast.error("Vui lòng nhập đầy đủ Họ tên, Email và Mật khẩu!");
+      return;
     }
 
-    setShowForm(false);
-    // refetch users
-    const res = await axios.get(
-      "http://localhost:3001/api/users/admin/users",
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    setUsers(res.data);
-  } catch (err) {
-    toast.error("Lỗi khi lưu người dùng");
-  }
-};
+    try {
+      const payload = { name, email, phone, address, role };
 
+      // nếu có clubId thì thêm joinedAt
+      if (clubId && clubId.trim() !== "") {
+        payload.clubId = clubId;
+        payload.joinedAt = new Date(); // 👈 thêm ngày gia nhập
+      }
+
+      if (password) payload.password = password;
+
+      if (editingUser) {
+        await axios.put(
+          `http://localhost:3001/api/users/admin/users/${editingUser._id}`,
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success("Đã cập nhật người dùng!");
+      } else {
+        await axios.post(
+          "http://localhost:3001/api/users/admin/users",
+          payload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        toast.success("Đã thêm người dùng!");
+      }
+
+      setShowForm(false);
+
+      // refetch users
+      const res = await axios.get(
+        "http://localhost:3001/api/users/admin/users",
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setUsers(res.data);
+    } catch {
+      toast.error("Lỗi khi lưu người dùng");
+    }
+  };
 
   // ----------------- FILTER -----------------
   const filteredUsers = users.filter((user) => {
@@ -174,6 +177,7 @@ const UserList = () => {
         </button>
       </div>
 
+      {/* Filter */}
       <div className="flex flex-col md:flex-row gap-4 mb-4">
         <input
           type="text"
@@ -193,6 +197,7 @@ const UserList = () => {
         </select>
       </div>
 
+      {/* Table */}
       <table className="min-w-full bg-white dark:bg-gray-800 shadow rounded-lg">
         <thead className="bg-gray-100 dark:bg-gray-700">
           <tr>
@@ -203,6 +208,7 @@ const UserList = () => {
             <th className="py-2 px-4 text-left">Địa chỉ</th>
             <th className="py-2 px-4 text-left">CLB</th>
             <th className="py-2 px-4 text-left">Vai trò</th>
+            <th className="py-2 px-4 text-left">Ngày gia nhập</th>
             <th className="py-2 px-4 text-left">Thao tác</th>
           </tr>
         </thead>
@@ -220,6 +226,11 @@ const UserList = () => {
               <td className="py-2 px-4">{user.clubName || "Chưa gia nhập"}</td>
               <td className="py-2 px-4">
                 {user.role === "clubadmin" ? "Chủ nhiệm CLB" : "Thành viên CLB"}
+              </td>
+              <td className="py-2 px-4">
+                {user.joinedAt
+                  ? new Date(user.joinedAt).toLocaleDateString("vi-VN")
+                  : "—"}
               </td>
               <td className="py-2 px-4 flex gap-2">
                 <button
@@ -246,6 +257,7 @@ const UserList = () => {
         </p>
       )}
 
+      {/* Modal Form */}
       {showForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-900 p-6 rounded-lg w-full max-w-md">
@@ -253,6 +265,7 @@ const UserList = () => {
               {editingUser ? "Sửa người dùng" : "Thêm người dùng"}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Họ tên */}
               <div>
                 <label className="block mb-1">Họ và tên</label>
                 <input
@@ -264,6 +277,7 @@ const UserList = () => {
                   required
                 />
               </div>
+              {/* Email */}
               <div>
                 <label className="block mb-1">Email</label>
                 <input
@@ -275,6 +289,7 @@ const UserList = () => {
                   required
                 />
               </div>
+              {/* Password */}
               <div>
                 <label className="block mb-1">Mật khẩu</label>
                 <input
@@ -283,12 +298,11 @@ const UserList = () => {
                   value={form.password}
                   onChange={handleChange}
                   className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
-                  placeholder={
-                    editingUser ? "Để trống nếu không đổi mật khẩu" : ""
-                  }
-                  required={!editingUser} // thêm bắt buộc khi tạo mới, không bắt buộc khi edit
+                  placeholder={editingUser ? "Để trống nếu không đổi" : ""}
+                  required={!editingUser}
                 />
               </div>
+              {/* Phone */}
               <div>
                 <label className="block mb-1">Số điện thoại</label>
                 <input
@@ -299,6 +313,7 @@ const UserList = () => {
                   className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
                 />
               </div>
+              {/* Address */}
               <div>
                 <label className="block mb-1">Địa chỉ</label>
                 <input
@@ -309,6 +324,7 @@ const UserList = () => {
                   className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
                 />
               </div>
+              {/* Club */}
               <div>
                 <label className="block mb-1">CLB</label>
                 <select
@@ -325,6 +341,7 @@ const UserList = () => {
                   ))}
                 </select>
               </div>
+              {/* Role */}
               <div>
                 <label className="block mb-1">Vai trò</label>
                 <select
@@ -333,42 +350,25 @@ const UserList = () => {
                   onChange={handleChange}
                   className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
                 >
-                  <option value="student">Học Sinh</option>
+                  <option value="student">Thành viên CLB</option>
                   <option value="clubadmin">Chủ nhiệm CLB</option>
                 </select>
               </div>
+
+              {/* Buttons */}
               <div className="flex justify-end gap-4 pt-4">
-                {/* Nút Thêm / Lưu */}
                 <button
                   type="submit"
-                  className="relative inline-flex items-center justify-center px-6 py-3 overflow-hidden font-bold text-white rounded shadow-lg group
-               bg-gradient-to-r from-cyan-500 via-blue-500 to-blue-600
-               hover:from-cyan-600 hover:via-blue-600 hover:to-blue-700
-               transition-all duration-300"
+                  className="px-6 py-3 font-bold text-white rounded bg-blue-600 hover:bg-blue-700 transition"
                 >
-                  <span
-                    className="absolute inset-0 flex items-center justify-center w-full h-full duration-300 transform translate-x-full
-                     bg-white bg-opacity-10 group-hover:translate-x-0"
-                  ></span>
-                  <span className="relative z-10">
-                    {editingUser ? "Lưu" : "Thêm"}
-                  </span>
+                  {editingUser ? "Lưu" : "Thêm"}
                 </button>
-
-                {/* Nút Huỷ */}
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="relative inline-flex items-center justify-center px-6 py-3 overflow-hidden font-bold text-white rounded shadow-lg group
-               bg-gradient-to-r from-red-500 via-red-600 to-red-700
-               hover:from-red-600 hover:via-red-700 hover:to-red-800
-               transition-all duration-300"
+                  className="px-6 py-3 font-bold text-white rounded bg-red-600 hover:bg-red-700 transition"
                 >
-                  <span
-                    className="absolute inset-0 flex items-center justify-center w-full h-full duration-300 transform translate-x-full
-                     bg-white bg-opacity-10 group-hover:translate-x-0"
-                  ></span>
-                  <span className="relative z-10">Huỷ</span>
+                  Huỷ
                 </button>
               </div>
             </form>

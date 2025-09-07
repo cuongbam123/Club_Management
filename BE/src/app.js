@@ -8,9 +8,10 @@ dotenv.config();
 const app = express();
 // Cấu hình CORS cho phép frontend trên localhost:3000 gửi yêu cầu
 const corsOptions = {
-  origin: 'http://localhost:3000', // Đảm bảo frontend chạy trên port này
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],  // Cho phép các phương thức này
+  origin: ['http://localhost:3000', 'http://localhost:3002'],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
 };
+
 
 app.use(cors(corsOptions));
 
@@ -25,6 +26,8 @@ const path = require("path");
 // app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/uploads", express.static(path.join(__dirname, "..", "uploads")));
 
+const uploadRoutes = require("./routes/upload");
+app.use("/api", uploadRoutes);
 
 connectDB(process.env.MONGO_URI);
 

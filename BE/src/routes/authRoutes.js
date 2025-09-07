@@ -7,7 +7,10 @@ const router = express.Router();
 
 router.post("/register", auth.register);
 router.post("/login", auth.login);
+
+// trả về user + club (cần token)
 router.get("/me", verifyToken, auth.me);
+
 router.put("/me", verifyToken, auth.updateMe);
 
 module.exports = router;

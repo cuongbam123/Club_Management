@@ -9,3 +9,7 @@ router.delete("/:id", verifyToken, reg.cancelRegistration);
 router.post("/:id/checkin", verifyToken, reg.checkin);
 
 module.exports = router;
+
+
+// xem lại
+

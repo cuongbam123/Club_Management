@@ -1,41 +1,59 @@
 import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { toast } from "react-toastify";
 
-const EventMember = ({ eventId, eventTitle }) => {
+const API_URL = process.env.REACT_APP_API_URL;
+
+const EventMember = ({ eventId, eventTitle, eventStatus }) => {
   const [members, setMembers] = useState([]);
   const [search, setSearch] = useState("");
   const [attendance, setAttendance] = useState({});
-  const [isModified, setIsModified] = useState(false); // để quản lý hiển thị nút Lưu
+  const [isModified, setIsModified] = useState(false);
 
+  const token = localStorage.getItem("token");
+
+  // ================== FETCH MEMBERS ==================
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        // MOCK DATA để test
-        const mockData = [
-          { userId: "1", fullname: "Nguyen Van A", email: "a@gmail.com", phone: "0123456789", status: "attended" },
-          { userId: "2", fullname: "Tran Thi B", email: "b@gmail.com", phone: "0987654321", status: "registered" },
-          { userId: "3", fullname: "Le Van C", email: "c@gmail.com", phone: "0112233445", status: "attended" },
-          { userId: "4", fullname: "Pham Thi D", email: "d@gmail.com", phone: "0223344556", status: "registered" },
-        ];
+        const res = await axios.get(`${API_URL}/events/${eventId}/participants`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-        setMembers(mockData);
+        const attendedRes = await axios.get(
+          `${API_URL}/events/${eventId}/attendance`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-        // Gán trạng thái ban đầu theo status
+        const attendedIds = attendedRes.data.map((m) => m._id);
+
+        const data = res.data.map((m) => ({
+          userId: m._id,
+          fullname: m.name,
+          email: m.email,
+          phone: m.phone || "Chưa có",
+        }));
+
+        setMembers(data);
+
         const initial = {};
-        mockData.forEach((m) => {
-          initial[m.userId] = m.status === "attended";
+        data.forEach((m) => {
+          initial[m.userId] = attendedIds.includes(m.userId);
         });
         setAttendance(initial);
-        setIsModified(false); // reset khi load lại data
+        setIsModified(false);
       } catch (err) {
-        console.error("Lỗi khi tải danh sách thành viên:", err);
+        console.error("❌ Lỗi khi tải thành viên:", err);
+        toast.error("Không tải được danh sách thành viên");
       }
     };
 
     if (eventId) fetchMembers();
-  }, [eventId]);
+  }, [eventId, token]);
 
+  // ================== HANDLE ==================
   const filteredMembers = members.filter((member) =>
-    member.fullname.toLowerCase().includes(search.toLowerCase())
+    member.fullname?.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleCheck = (userId, checked) => {
@@ -43,25 +61,40 @@ const EventMember = ({ eventId, eventTitle }) => {
       ...attendance,
       [userId]: checked,
     });
-    setIsModified(true); // khi có thay đổi thì hiện nút Lưu
+    setIsModified(true);
   };
 
-  const handleSave = () => {
-    const updated = members.map((m) => ({
-      ...m,
-      status: attendance[m.userId] ? "attended" : "registered",
-    }));
+  const handleSave = async () => {
+  try {
+    // Lấy danh sách user đã tick
+    const userIds = Object.entries(attendance)
+      .filter(([id, checked]) => checked)
+      .map(([id]) => id);
 
-    console.log("Dữ liệu lưu điểm danh:", updated);
+    if (userIds.length === 0) {
+      toast.warning("Chưa chọn ai để điểm danh!");
+      return;
+    }
 
-    // TODO: gọi API ở đây để cập nhật điểm danh thật
-    setMembers(updated);
-    setIsModified(false); // sau khi lưu thành công thì ẩn nút Lưu
-  };
+    await axios.post(
+      `${API_URL}/events/${eventId}/checkin/bulk`,
+      { userIds }, // 👈 gửi 1 lần mảng userIds
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
+    toast.success("Điểm danh thành công!");
+    setIsModified(false);
+  } catch (err) {
+    console.error("❌ Lỗi điểm danh:", err);
+    toast.error("Lỗi khi lưu điểm danh");
+  }
+};
+
+
+  // ================== UI ==================
   return (
     <div className="p-4">
-      {/* Thanh tìm kiếm + tiêu đề */}
+      {/* Search + Title */}
       <div className="mb-4 flex items-center justify-between">
         <input
           type="text"
@@ -71,8 +104,17 @@ const EventMember = ({ eventId, eventTitle }) => {
           className="border border-gray-300 rounded px-3 py-2 w-48 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <h2 className="text-2xl font-bold text-center flex-1">{eventTitle}</h2>
-        <div className="w-48"></div>
+        <div className="w-48 text-right font-semibold">
+          {eventStatus === "ongoing"
+            ? "🔵 Đang diễn ra"
+            : eventStatus === "upcoming"
+            ? "🟡 Chưa bắt đầu"
+            : eventStatus === "finished"
+            ? "⚫ Đã kết thúc"
+            : "🔴 Đã hủy"}
+        </div>
       </div>
+
       <p className="mt-2 text-sm text-gray-600">
         Tổng: {members.length} | Đã điểm danh: {Object.values(attendance).filter(v => v).length} | Chưa: {Object.values(attendance).filter(v => !v).length}
       </p>
@@ -82,12 +124,12 @@ const EventMember = ({ eventId, eventTitle }) => {
           <table className="min-w-full border border-gray-300 border-collapse bg-white dark:bg-gray-800">
             <thead className="bg-blue-500 text-white sticky top-0">
               <tr>
-                <th className="py-2 px-4 border border-gray-300">STT</th>
-                <th className="py-2 px-4 border border-gray-300">Tên</th>
-                <th className="py-2 px-4 border border-gray-300">Email</th>
-                <th className="py-2 px-4 border border-gray-300">SĐT</th>
-                <th className="py-2 px-4 border border-gray-300">Trạng thái</th>
-                <th className="py-2 px-4 border border-gray-300">Điểm danh</th>
+                <th className="py-2 px-4 border">STT</th>
+                <th className="py-2 px-4 border">Tên</th>
+                <th className="py-2 px-4 border">Email</th>
+                <th className="py-2 px-4 border">SĐT</th>
+                <th className="py-2 px-4 border">Trạng thái</th>
+                <th className="py-2 px-4 border">Điểm danh</th>
               </tr>
             </thead>
             <tbody>
@@ -96,23 +138,24 @@ const EventMember = ({ eventId, eventTitle }) => {
                   key={member.userId}
                   className="text-center hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
-                  <td className="py-2 px-4 border border-gray-300">{index + 1}</td>
-                  <td className="py-2 px-4 border border-gray-300">{member.fullname}</td>
-                  <td className="py-2 px-4 border border-gray-300">{member.email}</td>
-                  <td className="py-2 px-4 border border-gray-300">{member.phone}</td>
+                  <td className="py-2 px-4 border">{index + 1}</td>
+                  <td className="py-2 px-4 border">{member.fullname}</td>
+                  <td className="py-2 px-4 border">{member.email}</td>
+                  <td className="py-2 px-4 border">{member.phone}</td>
                   <td
-                    className={`py-2 px-4 border border-gray-300 font-semibold ${attendance[member.userId]
-                      ? "bg-gradient-to-r from-green-400 via-green-500 to-green-600 bg-clip-text text-transparent"
-                      : "bg-gradient-to-r from-red-400 via-red-500 to-red-600 bg-clip-text text-transparent"
-                      }`}
+                    className={`py-2 px-4 border font-semibold ${
+                      attendance[member.userId]
+                        ? "text-green-600"
+                        : "text-red-600"
+                    }`}
                   >
                     {attendance[member.userId] ? "Đã điểm danh" : "Chưa điểm danh"}
                   </td>
-
-                  <td className="py-2 px-4 border border-gray-300">
+                  <td className="py-2 px-4 border">
                     <input
                       type="checkbox"
                       checked={attendance[member.userId] || false}
+                      disabled={eventStatus !== "ongoing"} // ⛔ chỉ cho tick khi ongoing
                       onChange={(e) => handleCheck(member.userId, e.target.checked)}
                     />
                   </td>
@@ -127,23 +170,17 @@ const EventMember = ({ eventId, eventTitle }) => {
         </p>
       )}
 
-      {/* Nút lưu điểm danh (chỉ hiện khi có thay đổi) */}
-      {isModified && (
+      {/* Save button */}
+      {isModified && eventStatus === "ongoing" && (
         <div className="flex justify-end mt-4">
           <button
             onClick={handleSave}
-            className="relative inline-flex items-center justify-center px-6 py-2 overflow-hidden font-bold text-white rounded shadow-lg group
-                 bg-gradient-to-r from-green-400 via-green-500 to-green-600
-                 hover:from-green-500 hover:via-green-600 hover:to-green-700
-                 transition-all duration-300"
+            className="px-6 py-2 font-bold text-white rounded shadow-lg bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:from-green-500 hover:via-green-600 hover:to-green-700 transition-all duration-300"
           >
-            <span className="absolute inset-0 flex items-center justify-center w-full h-full duration-300 transform translate-x-full
-                       bg-white bg-opacity-10 group-hover:translate-x-0"></span>
-            <span className="relative z-10">Lưu điểm danh</span>
+            Lưu điểm danh
           </button>
         </div>
       )}
-
     </div>
   );
 };

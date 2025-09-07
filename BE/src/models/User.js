@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema({
     default: "student",
   },
   clubId: { type: mongoose.Schema.Types.ObjectId, ref: "Club" },
+  joinedAt: { type: Date }
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);
