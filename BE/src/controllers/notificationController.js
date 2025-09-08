@@ -1,4 +1,5 @@
 const Notification = require("../models/Notification");
+const Event = require("../models/Event");
 
 // [POST] /api/notifications
 const createNotification = async (req, res) => {
@@ -40,4 +41,23 @@ const getNotifications = async (req, res) => {
   }
 };
 
-module.exports = { createNotification, getNotifications };
+// [GET] /api/notifications/my  (user xem thông báo sự kiện đã đăng ký)
+const getMyNotifications = async (req, res) => {
+  try {
+    // Lấy tất cả event user đã đăng ký
+    const events = await Event.find({ participants: req.user._id }).select("_id");
+
+    const notis = await Notification.find({
+      eventId: { $in: events.map((e) => e._id) },
+    })
+      .sort({ createdAt: -1 })
+      .limit(50);
+
+    res.json(notis);
+  } catch (err) {
+    console.error("Error getMyNotifications:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { createNotification, getNotifications, getMyNotifications };

@@ -124,4 +124,36 @@ const updateMe = async (req, res) => {
   }
 };
 
-module.exports = { register, login, me, updateMe };
+//Quên mk
+
+const forgotPassword = async (req, res) => {
+  try {
+    const { email, phone, newPassword } = req.body;
+
+    if (!email || !phone || !newPassword) {
+      return res
+        .status(400)
+        .json({ message: "Email, phone và newPassword là bắt buộc" });
+    }
+
+    // Tìm user theo email + phone
+    const user = await User.findOne({ email, phone });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "Email hoặc số điện thoại không đúng" });
+    }
+
+    // Hash mật khẩu mới
+    const hashed = await bcrypt.hash(newPassword, 10);
+    user.password = hashed;
+    await user.save();
+
+    res.json({ message: "Cập nhật mật khẩu thành công" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+module.exports = { register, login, me, updateMe, forgotPassword };

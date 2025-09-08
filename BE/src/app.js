@@ -9,7 +9,7 @@ dotenv.config();
 const app = express();
 // Cấu hình CORS cho phép frontend trên localhost:3000 gửi yêu cầu
 const corsOptions = {
-  origin: ['http://localhost:3000', 'http://localhost:3002'],
+  origin: ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:3003'],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
 };
 
