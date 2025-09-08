@@ -16,6 +16,12 @@ const eventSchema = new mongoose.Schema({
     enum: ["upcoming", "ongoing", "finished", "cancelled"],
     default: "upcoming",
   },
+
+  //cronjob
+  notified15mBefore: { type: Boolean, default: false },
+  notifiedStart: { type: Boolean, default: false },
+  notifiedEnd: { type: Boolean, default: false },
+
   clubId: { type: mongoose.Schema.Types.ObjectId, ref: "Club", required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
 }, { timestamps: true });

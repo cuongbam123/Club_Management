@@ -1,22 +1,43 @@
 const Notification = require("../models/Notification");
 
+// [POST] /api/notifications
 const createNotification = async (req, res) => {
   try {
-    const { eventId, message, recipients } = req.body;
-    const n = await Notification.create({ eventId, message, recipients });
-    res.status(201).json(n);
+    const { title, content, receiverType, eventId } = req.body;
+    let file = null;
+
+    if (req.file) {
+      file = `${req.protocol}://${req.get("host")}/api/uploads/${req.file.filename}`;
+    }
+
+    const noti = await Notification.create({
+      title,
+      content,
+      receiverType: receiverType || "all",
+      eventId: eventId || null,
+      file,
+      sender: req.user?.name || "System",
+    });
+
+    res.status(201).json(noti);
   } catch (err) {
+    console.error("Error createNotification:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
-const listNotifications = async (req, res) => {
+
+// [GET] /api/notifications
+const getNotifications = async (req, res) => {
   try {
-    const list = await Notification.find({ recipients: req.user._id }).sort({ createdAt: -1 });
-    res.json(list);
+    const notis = await Notification.find({})
+      .sort({ createdAt: -1 })
+      .limit(50); // giới hạn cho nhẹ
+    res.json(notis);
   } catch (err) {
+    console.error("Error getNotifications:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
-module.exports = { createNotification, listNotifications };
+module.exports = { createNotification, getNotifications };

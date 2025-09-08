@@ -110,8 +110,18 @@ const cancelEvent = async (req, res) => {
     e.status = "cancelled";
     await e.save();
 
-    res.json({ message: "Event cancelled", event: e });
+    // 🔔 Gửi thông báo khi hủy sự kiện
+    await Notification.create({
+      title: `Hủy sự kiện: ${e.title}`,
+      content: `Sự kiện "${e.title}" đã bị hủy.`,
+      eventId: e._id,
+      receiverType: "all",
+      sender: "System",
+    });
+
+    res.json({ message: "Event cancelled and notification sent", event: e });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: err.message });
   }
 };

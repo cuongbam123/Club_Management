@@ -3,6 +3,7 @@ const morgan = require("morgan");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const { connectDB } = require("./config/database");
+require("./jobs/eventNotifications");
 dotenv.config();
 
 const app = express();
@@ -42,6 +43,7 @@ app.use("/api/events", require("./routes/eventsRoutes"));
 app.use("/api/registrations", require("./routes/registrationsRoutes"));
 app.use("/api/notifications", require("./routes/notificationsRoutes"));
 app.use("/api/statistics", require("./routes/statisticsRoutes"));
+app.use("/api/notifications", require("./routes/notificationsRoutes"));
 
 
 // Not found
