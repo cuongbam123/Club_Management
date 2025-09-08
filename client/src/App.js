@@ -1,6 +1,11 @@
 // src/App.jsx
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -22,7 +27,16 @@ import EventDetail from "./components/EventDetail";
 import Profile from "./components/Profile";
 import Histo from "./components/Histo";
 
-// Route mặc định cho "/"
+// ================= Private Route =================
+function PrivateRoute({ children }) {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
+
+// ================= Default Route cho "/" =================
 function DefaultRoute() {
   const userClub = JSON.parse(localStorage.getItem("userClub"));
   if (userClub && userClub.id) {
@@ -32,13 +46,11 @@ function DefaultRoute() {
 }
 
 function App() {
-  // ✅ useState ở top-level
   const [, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
     return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  // ✅ useEffect chỉ để xử lý token FE
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tokenFromFE = params.get("token");
@@ -56,15 +68,22 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/forgot" element={<ForgotPassword />} />
 
-        {/* User routes bọc trong Layout */}
-        <Route path="/" element={<Layout />}>
-          <Route index element={<DefaultRoute />} /> {/* route mặc định "/" */}
-          <Route path="/profile" element={<Profile onUserUpdate={setUser} />} />
+        {/* Protected routes */}
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <Layout />
+            </PrivateRoute>
+          }
+        >
+          <Route index element={<DefaultRoute />} />
+          <Route path="profile" element={<Profile onUserUpdate={setUser} />} />
           <Route path="hist" element={<Histo />} />
           <Route path="clubs" element={<ClubList />} />
           <Route path="clubs/:id" element={<ClubDetail />} />
-          <Route path="/event-club" element={<EventClub />} />
-          <Route path="/event-club/:eventId" element={<EventDetail />} />
+          <Route path="event-club" element={<EventClub />} />
+          <Route path="event-club/:eventId" element={<EventDetail />} />
           <Route path="events" element={<EventList />} />
           <Route path="events/:id" element={<EventDetail />} />
           <Route path="registration-status" element={<RegistrationStatus />} />

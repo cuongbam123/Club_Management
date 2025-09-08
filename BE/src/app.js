@@ -3,12 +3,13 @@ const morgan = require("morgan");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const { connectDB } = require("./config/database");
+require("./jobs/eventNotifications");
 dotenv.config();
 
 const app = express();
 // Cấu hình CORS cho phép frontend trên localhost:3000 gửi yêu cầu
 const corsOptions = {
-  origin: ['http://localhost:3000', 'http://localhost:3002'],
+  origin: ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:3003'],
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
 };
 
@@ -42,6 +43,7 @@ app.use("/api/events", require("./routes/eventsRoutes"));
 app.use("/api/registrations", require("./routes/registrationsRoutes"));
 app.use("/api/notifications", require("./routes/notificationsRoutes"));
 app.use("/api/statistics", require("./routes/statisticsRoutes"));
+app.use("/api/notifications", require("./routes/notificationsRoutes"));
 
 
 // Not found
