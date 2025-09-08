@@ -1,5 +1,7 @@
 const Event = require("../models/Event");
 const Notification = require("../models/Notification");
+const Registration = require("../models/Registration");
+
 
 // Tạo sự kiện
 const createEvent = async (req, res) => {
@@ -164,6 +166,13 @@ const registerEvent = async (req, res) => {
     e.participants.push(req.user._id);
     await e.save();
 
+    // 🔽 thêm bản ghi vào registrations để đồng bộ
+    await Registration.findOneAndUpdate(
+      { eventId: e._id, userId: req.user._id },
+      { status: "registered" },
+      { upsert: true, new: true }
+    );
+
     res.json({ message: "Registered successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -180,8 +189,16 @@ const unregisterEvent = async (req, res) => {
       return res.status(400).json({ message: "Cannot unregister after deadline" });
     }
 
-    e.participants = e.participants.filter(p => p.toString() !== req.user._id.toString());
+    e.participants = e.participants.filter(
+      (p) => p.toString() !== req.user._id.toString()
+    );
     await e.save();
+
+    // 🔽 cập nhật registration thành cancelled
+    await Registration.findOneAndUpdate(
+      { eventId: e._id, userId: req.user._id },
+      { status: "cancelled" }
+    );
 
     res.json({ message: "Unregistered successfully" });
   } catch (err) {

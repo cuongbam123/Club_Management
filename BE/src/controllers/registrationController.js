@@ -28,8 +28,31 @@ const createRegistration = async (req, res) => {
 const myRegistrations = async (req, res) => {
   try {
     const regs = await Registration.find({ userId: req.user._id })
-      .populate("eventId", "title startAt endAt location");
-    res.json(regs);
+      .populate({
+        path: "eventId",
+        select: "title description startAt endAt location status clubId",
+        populate: { path: "clubId", select: "name" },
+      });
+
+    // Format lại cho FE dùng gọn
+    const result = regs.map(r => ({
+      id: r._id,
+      status: r.status, // trạng thái của registration (registered, cancelled, attended…)
+      event: r.eventId
+        ? {
+            id: r.eventId._id,
+            title: r.eventId.title,
+            description: r.eventId.description,
+            startAt: r.eventId.startAt,
+            endAt: r.eventId.endAt,
+            location: r.eventId.location,
+            status: r.eventId.status, // upcoming, ongoing, finished, cancelled
+            clubName: r.eventId.clubId ? r.eventId.clubId.name : null,
+          }
+        : null,
+    }));
+
+    res.json(result);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
