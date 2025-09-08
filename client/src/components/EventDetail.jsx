@@ -1,3 +1,4 @@
+// src/pages/EventDetail.jsx
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { allEvents } from "../eventsData";
@@ -12,7 +13,7 @@ export default function EventDetail() {
 
     if (!eventData) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50">
+            <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 dark:bg-gray-900">
                 <h2 className="text-3xl font-bold text-red-500">Không tìm thấy sự kiện</h2>
                 <button
                     className="mt-6 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-md transition"
@@ -41,19 +42,24 @@ export default function EventDetail() {
 
     return (
         <div
-            className="p-6 max-w-5xl mx-auto min-h-screen"
-            style={{
-                background: "linear-gradient(to bottom right, #e0f2fe, #f0f9ff)",
-            }}
+            className="
+                min-h-screen p-6 
+                bg-gray-100 
+                dark:bg-[url('https://noithatbinhminh.com.vn/wp-content/uploads/2023/08/background-trung-thu-08.jpg')] 
+                dark:bg-cover dark:bg-center dark:bg-fixed
+            "
         >
-            <button
-                className="mb-6 px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl shadow hover:opacity-90 transition"
-                onClick={() => navigate(-1)}
-            >
-                ←
-            </button>
+            <div className="max-w-5xl mx-auto bg-white dark:bg-gray-900 rounded-3xl shadow-2xl p-8">
 
-            <div className="bg-white rounded-3xl shadow-2xl p-8">
+                {/* Nút quay lại */}
+                <button
+                    className="mb-6 px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl shadow hover:opacity-90 transition"
+                    onClick={() => navigate(-1)}
+                >
+                    ←
+                </button>
+
+                {/* Ảnh sự kiện */}
                 {eventData.imageUrl && (
                     <div className="w-full h-72 rounded-2xl overflow-hidden mb-6">
                         <img
@@ -64,50 +70,42 @@ export default function EventDetail() {
                     </div>
                 )}
 
-                <h2 className="text-4xl font-extrabold mb-2 leading-snug text-center
-    bg-gradient-to-r from-cyan-600 via-blue-700 to-blue-900
-    bg-clip-text text-transparent drop-shadow-md italic tracking-widest
-    transition-all duration-500 hover:bg-gradient-to-r hover:from-cyan-500 hover:via-blue-600 hover:to-blue-800">
+                {/* Tiêu đề */}
+                <h2 className="text-4xl font-extrabold mb-6 text-center
+                    bg-gradient-to-r from-cyan-600 via-blue-700 to-blue-900
+                    bg-clip-text text-transparent drop-shadow-md italic tracking-widest
+                    transition-all duration-500 hover:from-cyan-500 hover:via-blue-600 hover:to-blue-800">
                     {eventData.name}
                 </h2>
 
-
-
+                {/* Thông tin cơ bản */}
                 <div className="space-y-2 mb-6 text-lg">
-                    <p className="text-gray-700 text-lg mb-2">
-                        <span className="font-bold text-gray-700 drop-shadow-md">
-                            CLB tổ chức:
-                        </span>{" "}
-                        <span className="font-bold text-gray-700 drop-shadow-md">{eventData.club}</span>
+                    <p className="text-gray-700 dark:text-gray-300">
+                        <span className="font-bold">CLB tổ chức:</span> {eventData.club}
                     </p>
 
-                    <p className="text-gray-700 text-lg mb-2">
-                        <span className="font-bold text-gray-700 drop-shadow-md">
-                            Thời gian:
-                        </span>{" "}
-                        <span className="font-bold text-gray-700 drop-shadow-md">
-                            {eventData.startAt
-                                ? new Date(eventData.startAt).toLocaleString("vi-VN", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit"
-                                })
-                                : "Chưa có"}{" "}
-                            -{" "}
-                            {eventData.endAt
-                                ? new Date(eventData.endAt).toLocaleString("vi-VN", {
-                                    day: "2-digit",
-                                    month: "2-digit",
-                                    year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit"
-                                })
-                                : "Chưa có"}
-                        </span>
+                    <p className="text-gray-700 dark:text-gray-300">
+                        <span className="font-bold">Thời gian:</span>{" "}
+                        {eventData.startAt
+                            ? new Date(eventData.startAt).toLocaleString("vi-VN", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit"
+                            })
+                            : "Chưa có"}{" "}
+                        -{" "}
+                        {eventData.endAt
+                            ? new Date(eventData.endAt).toLocaleString("vi-VN", {
+                                day: "2-digit",
+                                month: "2-digit",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit"
+                            })
+                            : "Chưa có"}
                     </p>
-
 
                     <p
                         className={`font-semibold text-transparent bg-clip-text drop-shadow-md ${eventData.status === "upcoming"
@@ -119,10 +117,9 @@ export default function EventDetail() {
                     >
                         Trạng thái: {eventData.status.toUpperCase()}
                     </p>
-
                 </div>
 
-                {/* Chỉ hiện nút nếu sự kiện sắp diễn ra */}
+                {/* Nút đăng ký */}
                 {eventData.status === "upcoming" && (
                     <button
                         className={`mb-6 px-8 py-3 rounded-xl text-white text-lg font-semibold shadow-md transition transform ${registered
@@ -135,13 +132,17 @@ export default function EventDetail() {
                     </button>
                 )}
 
-                <div className="mt-8 text-gray-700 leading-relaxed">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-3">Chi tiết sự kiện</h3>
+                {/* Chi tiết sự kiện */}
+                <div className="mt-8 text-gray-700 dark:text-gray-300 leading-relaxed">
+                    <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-3">
+                        Chi tiết sự kiện
+                    </h3>
                     <p>
                         Đây là chi tiết của sự kiện{" "}
-                        <strong className="text-indigo-600">{eventData.name}</strong>.
-                        Bạn có thể thêm thông tin chi tiết hơn về lịch trình, địa điểm,
-                        và nội dung hoạt động tại đây để người tham gia nắm rõ hơn.
+                        <strong className="text-indigo-600 dark:text-indigo-400">
+                            {eventData.name}
+                        </strong>. Bạn có thể thêm thông tin chi tiết hơn về lịch trình,
+                        địa điểm, và nội dung hoạt động tại đây.
                     </p>
                 </div>
             </div>
