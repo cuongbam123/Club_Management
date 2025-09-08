@@ -2,6 +2,7 @@ const router = require("express").Router();
 const user = require("../controllers/userController");
 const { verifyToken, requireRole, requireSelfOrRole } = require("../middlewares/auth");
 const User = require("../models/User");
+const upload = require("../config/multer");
 
 // ================== LẤY DANH SÁCH CLUB ADMINS ==================
 router.get(
@@ -18,7 +19,10 @@ router.get(
   }
 );
 
-router.get("/users/me", verifyToken, user.getMe);
+// ================== USER TỰ LẤY VÀ UPDATE ==================
+router.get("/me", verifyToken, user.getMe);
+router.post("/upload-avatar", verifyToken, upload.single("avatar"), user.uploadAvatar);
+router.put("/me", verifyToken, user.updateMe);
 
 // ================== SUPERADMIN QUẢN LÝ USERS ==================
 router.get("/admin/users", verifyToken, requireRole("superadmin"), user.listUsers);

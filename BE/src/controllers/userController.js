@@ -136,6 +136,7 @@ const getMe = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
+       avatarUrl: user.avatarUrl || null,
       clubName: user.clubId ? user.clubId.name : null,
       clubLogo: user.clubId ? user.clubId.logoUrl : null,
     });
@@ -144,6 +145,34 @@ const getMe = async (req, res) => {
   }
 };
 
+// [POST] /api/users/upload-avatar
+const uploadAvatar = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded" });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.avatarUrl = `/api/uploads/${req.file.filename}`;
+    await user.save();
+
+    res.json({ message: "Avatar updated", avatarUrl: user.avatarUrl });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+const updateMe = async (req, res) => {
+  try {
+    const updates = (({ name, email, phone, address }) => ({ name, email, phone, address }))(req.body);
+    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true }).select("-password");
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
 
 
 module.exports = {
@@ -154,4 +183,6 @@ module.exports = {
   updateRole,
   removeUser,
   getMe,
+  uploadAvatar,
+  updateMe,
 };
