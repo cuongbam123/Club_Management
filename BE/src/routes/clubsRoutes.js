@@ -16,6 +16,8 @@ router.post(
   clubController.createClub
 );
 
+
+
 // Lấy logo của CLB theo user hiện tại
 router.get("/logo", verifyToken, clubController.getClubLogo);
 
@@ -60,6 +62,8 @@ router.post(
   clubController.addMember
 );
 
+router.post("/:id/join", verifyToken, clubController.joinClub);
+
 // Xoá thành viên khỏi CLB
 router.delete(
   "/:id/members/:userId",
@@ -67,5 +71,6 @@ router.delete(
   requireRole("superadmin", "clubadmin"),
   clubController.removeMember
 );
+
 
 module.exports = router;

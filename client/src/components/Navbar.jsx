@@ -1,13 +1,7 @@
 // src/components/NavBar.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  FaHeart,
-  FaRegFileAlt,
-  FaUser,
-  FaMoon,
-  FaSun,
-} from "react-icons/fa";
+import { FaHeart, FaRegFileAlt, FaUser, FaMoon, FaSun } from "react-icons/fa";
 import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL;
@@ -96,11 +90,7 @@ const NavBar = () => {
 
         {/* Logo CLB ở giữa */}
         <img
-          src={
-            user?.clubLogo
-              ? `${API_URL}${user.clubLogo}`
-              : "https://portal.ut.edu.vn/images/sv_logo_dashboard.png"
-          }
+          src="https://portal.ut.edu.vn/images/sv_logo_dashboard.png"
           alt="Club Logo"
           className="h-16 cursor-pointer drop-shadow-lg"
           onClick={() => navigate("/")}
@@ -155,7 +145,7 @@ const NavBar = () => {
               <img
                 src={
                   user.avatarUrl
-                    ? `${API_URL}${user.avatarUrl}`
+                    ? `${API_URL.replace(/\/api$/, "")}${user.avatarUrl}`
                     : "https://via.placeholder.com/40"
                 }
                 alt={user.name}
@@ -206,10 +196,7 @@ const NavBar = () => {
         <Link to="/clubs" className={`nav-link ${darkMode ? "dark-nav" : ""}`}>
           CLB
         </Link>
-        <Link
-          to="/events"
-          className={`nav-link ${darkMode ? "dark-nav" : ""}`}
-        >
+        <Link to="/events" className={`nav-link ${darkMode ? "dark-nav" : ""}`}>
           Sự kiện
         </Link>
         <Link

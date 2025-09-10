@@ -125,9 +125,9 @@ const removeUser = async (req, res) => {
 // Lấy user hiện tại từ token
 const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id) // 👈 dùng _id thay vì id
+    const user = await User.findById(req.user._id) // 👈 dùng _id
       .select("-password")
-      .populate("clubId", "name logoUrl");
+      .populate("clubId", "name logoUrl description president"); // populate chi tiết club
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -136,9 +136,16 @@ const getMe = async (req, res) => {
       name: user.name,
       email: user.email,
       role: user.role,
-       avatarUrl: user.avatarUrl || null,
-      clubName: user.clubId ? user.clubId.name : null,
-      clubLogo: user.clubId ? user.clubId.logoUrl : null,
+      avatarUrl: user.avatarUrl || null,
+      club: user.clubId
+        ? {
+            _id: user.clubId._id,
+            name: user.clubId.name,
+            logoUrl: user.clubId.logoUrl || null,
+            description: user.clubId.description || null,
+            president: user.clubId.president || null,
+          }
+        : null,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
