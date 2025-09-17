@@ -6,8 +6,24 @@ import { makeFullUrl } from "../../utils/urls";
 const API = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
 
 export default function EventClub({ club }) {
+  const [clubDetail, setClubDetail] = useState(null);
   const [clubEvents, setClubEvents] = useState([]);
 
+  // 🔹 Lấy chi tiết CLB
+  useEffect(() => {
+    const fetchClubDetail = async () => {
+      try {
+        const res = await axios.get(`${API}/clubs/${club._id}`);
+        setClubDetail(res.data);
+      } catch (err) {
+        console.error("Error fetch club detail:", err);
+      }
+    };
+
+    if (club?._id) fetchClubDetail();
+  }, [club]);
+
+  // 🔹 Lấy danh sách sự kiện
   useEffect(() => {
     const fetchEvents = async () => {
       try {
@@ -33,6 +49,7 @@ export default function EventClub({ club }) {
         console.error("Error fetch events:", err);
       }
     };
+
     if (club?._id) fetchEvents();
   }, [club]);
 
@@ -55,23 +72,27 @@ export default function EventClub({ club }) {
           style={{ width: "1200px", margin: "0 auto 40px auto" }}
         >
           <h1 className="text-4xl font-bold mb-2 text-gray-900 dark:text-white">
-            {club.name}
+            {clubDetail?.name || club.name}
           </h1>
 
           <img
-            src={makeFullUrl(club.logoUrl) || "/fallback.png"}
-            alt={club.name}
+            src={makeFullUrl(clubDetail?.logoUrl || club.logoUrl) || "/fallback.png"}
+            alt={clubDetail?.name || club.name}
             className="mb-6 shadow-lg rounded-lg"
             style={{ width: "100%", height: "auto", maxHeight: "500px" }}
           />
 
           <p className="text-gray-600 dark:text-gray-300 mb-2">
-            <strong>Chủ nhiệm:</strong> {club.president?.name || "Chưa có"}
+            <strong>Chủ nhiệm:</strong>{" "}
+            {clubDetail?.president?.name || "Chưa có"}
           </p>
-          <p className="text-gray-700 dark:text-gray-200 mb-6">{club.description}</p>
+          <p className="text-gray-700 dark:text-gray-200 mb-6">
+            {clubDetail?.description || club.description}
+          </p>
         </div>
 
-        <div className="p-6 max-w-5xl mx-auto min-h-screen 
+        <div
+          className="p-6 max-w-5xl mx-auto min-h-screen 
                          bg-white dark:bg-gray-700 rounded-xl shadow-2xl"
         >
           <h2
@@ -79,7 +100,7 @@ export default function EventClub({ club }) {
                        bg-gradient-to-r from-cyan-400 via-blue-500 to-blue-800
                        bg-clip-text text-transparent drop-shadow-md italic tracking-widest"
           >
-            {`Sự kiện của ${club.name}`}
+            {`Sự kiện của ${clubDetail?.name || club.name}`}
           </h2>
 
           {clubEvents.length > 0 ? (

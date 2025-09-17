@@ -20,13 +20,14 @@ const createEvent = async (req, res) => {
 const listEvents = async (req, res) => {
   try {
     const q = {};
+
     if (req.query.status) q.status = req.query.status;
+    if (req.query.clubId) q.clubId = req.query.clubId; // 👈 lọc theo CLB
 
     const events = await Event.find(q)
-      .populate("clubId", "name")
+      .populate("clubId", "name logoUrl")
       .populate("createdBy", "name email");
 
-    // Trả về kèm participantsCount và attendedCount
     const formatted = events.map(e => ({
       ...e.toObject(),
       participantsCount: e.participants?.length || 0,
@@ -42,22 +43,42 @@ const listEvents = async (req, res) => {
 
 
 // Chi tiết sự kiện
-const getEvent = async (req, res) => {
-  try {
-    const e = await Event.findById(req.params.id)
-      .populate("clubId", "name")
-      .populate("createdBy", "name email")
-      .populate("participants", "name email")
-      .populate("attended", "name email");
+// const getEvent = async (req, res) => {
+//   try {
+//     const e = await Event.findById(req.params.id)
+//       .populate("clubId", "name")
+//       .populate("createdBy", "name email")
+//       .populate("participants", "name email")
+//       .populate("attended", "name email");
 
-    if (!e) return res.status(404).json({ message: "Event not found" });
+//     if (!e) return res.status(404).json({ message: "Event not found" });
+
+//     res.json({
+//       ...e.toObject(),
+//       participantsCount: e.participants?.length || 0,
+//       attendedCount: e.attended?.length || 0,
+//     });
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// };
+
+// Lấy chi tiết sự kiện theo id
+const getEventById = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id)
+      .populate("clubId", "name logoUrl")
+      .populate("createdBy", "name email");
+
+    if (!event) return res.status(404).json({ message: "Không tìm thấy sự kiện" });
 
     res.json({
-      ...e.toObject(),
-      participantsCount: e.participants?.length || 0,
-      attendedCount: e.attended?.length || 0,
+      ...event.toObject(),
+      participantsCount: event.participants?.length || 0,
+      attendedCount: event.attended?.length || 0,
     });
   } catch (err) {
+    console.error("Error getEventById:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -151,10 +172,6 @@ const registerEvent = async (req, res) => {
       return res.status(400).json({ message: "Event is not open for registration" });
     }
 
-    if (e.cancelDeadline && new Date() > e.cancelDeadline) {
-      return res.status(400).json({ message: "Registration deadline passed" });
-    }
-
     if (e.participants.includes(req.user._id)) {
       return res.status(400).json({ message: "Already registered" });
     }
@@ -163,17 +180,19 @@ const registerEvent = async (req, res) => {
       return res.status(400).json({ message: "Event is full" });
     }
 
+    // push user vào danh sách participants
     e.participants.push(req.user._id);
     await e.save();
 
-    // 🔽 thêm bản ghi vào registrations để đồng bộ
+    // tạo/cập nhật registration với deadline = 1h sau khi đăng ký
+    const deadline = new Date(Date.now() + 60 * 60 * 1000); // 1h
     await Registration.findOneAndUpdate(
       { eventId: e._id, userId: req.user._id },
-      { status: "registered" },
+      { status: "registered", cancelDeadline: deadline },
       { upsert: true, new: true }
     );
 
-    res.json({ message: "Registered successfully" });
+    res.json({ message: "Registered successfully", cancelDeadline: deadline });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -185,26 +204,64 @@ const unregisterEvent = async (req, res) => {
     const e = await Event.findById(req.params.id);
     if (!e) return res.status(404).json({ message: "Event not found" });
 
-    if (e.cancelDeadline && new Date() > e.cancelDeadline) {
-      return res.status(400).json({ message: "Cannot unregister after deadline" });
+    const registration = await Registration.findOne({
+      eventId: e._id,
+      userId: req.user._id,
+    });
+
+    if (!registration || registration.status !== "registered") {
+      return res.status(400).json({ message: "You are not registered" });
     }
 
+    // check deadline
+    if (registration.cancelDeadline && new Date() > registration.cancelDeadline) {
+      return res.status(400).json({ message: "Cannot unregister after 1 hour" });
+    }
+
+    // remove user khỏi participants
     e.participants = e.participants.filter(
       (p) => p.toString() !== req.user._id.toString()
     );
     await e.save();
 
-    // 🔽 cập nhật registration thành cancelled
-    await Registration.findOneAndUpdate(
-      { eventId: e._id, userId: req.user._id },
-      { status: "cancelled" }
-    );
+    // cập nhật registration thành cancelled
+    registration.status = "cancelled";
+    await registration.save();
 
     res.json({ message: "Unregistered successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
+// Kiểm tra trạng thái đăng ký
+const getRegistrationStatus = async (req, res) => {
+  try {
+    const e = await Event.findById(req.params.id);
+    if (!e) return res.status(404).json({ message: "Event not found" });
+
+    // kiểm tra user có trong participants chưa
+    const isRegistered = e.participants.some(
+      (p) => p.toString() === req.user._id.toString()
+    );
+
+    // lấy thêm registration để check deadline, status nếu cần
+    const reg = await Registration.findOne({
+      eventId: e._id,
+      userId: req.user._id,
+    });
+
+    res.json({
+      registered: isRegistered,
+      status: reg ? reg.status : "not_registered",
+      cancelDeadline: reg ? reg.cancelDeadline : null,
+    });
+  } catch (err) {
+    console.error("Error checking registration status:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
 
 // Check-in
 const checkinEvent = async (req, res) => {
@@ -307,12 +364,13 @@ const uploadBanner = async (req, res) => {
 module.exports = {
   createEvent,
   listEvents,
-  getEvent,
+  getEventById,
   updateEvent,
   cancelEvent,
   removeEvent,
   registerEvent,
   unregisterEvent,
+  getRegistrationStatus,
   checkinEvent,
   bulkCheckinEvent,
   listParticipants,

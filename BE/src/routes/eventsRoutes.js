@@ -7,7 +7,7 @@ const upload = require("../config/multer");
 
 router.post("/", verifyToken, requireRole("clubadmin", "superadmin"), event.createEvent);
 router.get("/", updateEventStatus, event.listEvents);
-router.get("/:id", updateEventStatus, event.getEvent);
+router.get("/:id", updateEventStatus, event.getEventById);
 router.put("/:id", verifyToken, event.updateEvent);
 router.delete("/:id", verifyToken, event.removeEvent);
 router.patch("/:id/cancel", verifyToken, requireRole("clubadmin", "superadmin"), event.cancelEvent);
@@ -15,6 +15,7 @@ router.patch("/:id/cancel", verifyToken, requireRole("clubadmin", "superadmin"),
 // Registration
 router.post("/:id/register", verifyToken, event.registerEvent);
 router.delete("/:id/register", verifyToken, event.unregisterEvent);
+router.get("/:id/registration-status", verifyToken, event.getRegistrationStatus);
 
 // Check-in & lists
 router.post("/:id/checkin", verifyToken, event.checkinEvent);

@@ -9,6 +9,7 @@ const registrationSchema = new mongoose.Schema({
     default: "registered",
   },
   registeredAt: { type: Date, default: Date.now },
+  cancelDeadline: { type: Date },
   checkedInAt: { type: Date },
 }, { timestamps: true });
 

@@ -102,7 +102,9 @@ const Profile = () => {
           <img
             src={
               user?.avatarUrl
-                ? `${process.env.REACT_APP_API_URL.replace("/api", "")}${user.avatarUrl}`
+                ? `${process.env.REACT_APP_API_URL.replace("/api", "")}${
+                    user.avatarUrl
+                  }`
                 : "https://via.placeholder.com/100"
             }
             alt="avatar"
@@ -156,7 +158,7 @@ const Profile = () => {
 
           <div>
             <span className="font-semibold">CLB: </span>
-            <span>{user?.clubName || "Chưa tham gia CLB"}</span>
+            <span>{user?.club ? user.club.name : "Chưa tham gia CLB"}</span>
           </div>
         </div>
 
