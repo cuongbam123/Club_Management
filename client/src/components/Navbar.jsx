@@ -200,12 +200,6 @@ const NavBar = () => {
           Sự kiện
         </Link>
         <Link
-          to="/registration-status"
-          className={`nav-link ${darkMode ? "dark-nav" : ""}`}
-        >
-          Điểm danh
-        </Link>
-        <Link
           to="/notifications"
           className={`nav-link ${darkMode ? "dark-nav" : ""}`}
         >
