@@ -16,6 +16,7 @@ const EventManagement = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    location: "", 
     startAt: "",
     endAt: "",
     capacity: "",
@@ -115,6 +116,7 @@ const EventManagement = () => {
       const payload = {
         title: formData.title,
         description: formData.description,
+        location: formData.location,
         startAt: formData.startAt,
         endAt: formData.endAt,
         capacity: formData.capacity,
@@ -185,6 +187,7 @@ const EventManagement = () => {
               setFormData({
                 title: "",
                 description: "",
+                location: "",
                 startAt: "",
                 endAt: "",
                 capacity: "",
@@ -378,6 +381,18 @@ const EventManagement = () => {
                   required
                 />
               </div>
+              {/* Location */}
+              <div>
+                <label className="block mb-1">Địa chỉ</label>
+                <input
+                  type="text"
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
+                  required
+                />
+              </div>
 
               {/* Capacity */}
               <div>
@@ -474,6 +489,7 @@ const EventManagement = () => {
                     setFormData({
                       title: "",
                       description: "",
+                      location: "",
                       startAt: "",
                       endAt: "",
                       capacity: "",
@@ -506,10 +522,12 @@ const EventManagement = () => {
               </button>
             </div>
             <EventMember
-  eventId={selectedEventId}
-  eventTitle={events.find((e) => e._id === selectedEventId)?.title}
-  eventStatus={events.find((e) => e._id === selectedEventId)?.status}
-/>
+              eventId={selectedEventId}
+              eventTitle={events.find((e) => e._id === selectedEventId)?.title}
+              eventStatus={
+                events.find((e) => e._id === selectedEventId)?.status
+              }
+            />
           </div>
         </div>
       )}
