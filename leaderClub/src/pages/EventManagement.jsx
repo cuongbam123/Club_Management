@@ -16,7 +16,7 @@ const EventManagement = () => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    location: "", 
+    location: "",
     startAt: "",
     endAt: "",
     capacity: "",
@@ -250,23 +250,22 @@ const EventManagement = () => {
                 <td className="py-4 px-6 text-center">
                   <span
                     className={`px-4 py-1.5 rounded-full text-white text-sm font-semibold 
-                      ${
-                        event.status === "upcoming"
-                          ? "bg-gradient-to-r from-cyan-500 via-blue-500 to-blue-600"
-                          : event.status === "ongoing"
+                      ${event.status === "upcoming"
+                        ? "bg-gradient-to-r from-cyan-500 via-blue-500 to-blue-600"
+                        : event.status === "ongoing"
                           ? "bg-gradient-to-r from-green-400 via-green-500 to-green-600"
                           : event.status === "finished"
-                          ? "bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700"
-                          : "bg-gradient-to-r from-red-500 via-red-600 to-red-700"
+                            ? "bg-gradient-to-r from-gray-500 via-gray-600 to-gray-700"
+                            : "bg-gradient-to-r from-red-500 via-red-600 to-red-700"
                       }`}
                   >
                     {event.status === "upcoming"
                       ? "Sắp diễn ra"
                       : event.status === "ongoing"
-                      ? "Đang diễn ra"
-                      : event.status === "finished"
-                      ? "Đã kết thúc"
-                      : "Đã hủy"}
+                        ? "Đang diễn ra"
+                        : event.status === "finished"
+                          ? "Đã kết thúc"
+                          : "Đã hủy"}
                   </span>
                 </td>
                 <td className="py-4 px-2 flex justify-center gap-1">
@@ -302,11 +301,10 @@ const EventManagement = () => {
             <button
               key={i}
               onClick={() => setCurrentPage(i + 1)}
-              className={`px-3 py-1 rounded ${
-                currentPage === i + 1
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-200 dark:bg-gray-700 dark:text-white"
-              }`}
+              className={`px-3 py-1 rounded ${currentPage === i + 1
+                ? "bg-blue-600 text-white"
+                : "bg-gray-200 dark:bg-gray-700 dark:text-white"
+                }`}
             >
               {i + 1}
             </button>
@@ -317,73 +315,76 @@ const EventManagement = () => {
       {/* Form */}
       {showForm && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 w-full max-w-2xl rounded-lg shadow-lg p-6 overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-6">
+          <div className="bg-white dark:bg-gray-800 w-full max-w-3xl rounded-lg shadow-lg p-6 overflow-y-auto">
+            <h2 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600 bg-clip-text text-transparent">
               {editId ? "Sửa sự kiện" : "Tạo sự kiện mới"}
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Tiêu đề */}
-              <div>
-                <label className="block mb-1">Tiêu đề</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
-                  required
-                />
-              </div>
 
-              {/* Banner */}
-              <div>
-                <label className="block mb-1">Banner sự kiện</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (file) handleUploadBanner(file);
-                  }}
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
-                />
-                {formData.bannerUrl && (
-                  <img
-                    src={`http://localhost:3001${formData.bannerUrl}`}
-                    alt="Banner"
-                    className="mt-2 rounded-lg shadow max-h-40 object-cover"
+            <form onSubmit={handleSubmit} className="space-y-6">
+
+              {/* Tiêu đề + Banner */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 font-semibold">Tiêu đề</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
+                    required
                   />
-                )}
+                </div>
+                <div>
+                  <label className="block mb-1 font-semibold">Banner sự kiện</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      if (file) handleUploadBanner(file);
+                    }}
+                    className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
+                  />
+                  {formData.bannerUrl && (
+                    <img
+                      src={`http://localhost:3001${formData.bannerUrl}`}
+                      alt="Banner"
+                      className="mt-2 rounded-lg shadow max-h-32 object-cover"
+                    />
+                  )}
+                </div>
               </div>
 
-              {/* StartAt */}
-              <div>
-                <label className="block mb-1">Bắt đầu</label>
-                <input
-                  type="datetime-local"
-                  name="startAt"
-                  value={formData.startAt}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
-                  required
-                />
+              {/* Bắt đầu + Kết thúc */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block mb-1 font-semibold">Bắt đầu</label>
+                  <input
+                    type="datetime-local"
+                    name="startAt"
+                    value={formData.startAt}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block mb-1 font-semibold">Kết thúc</label>
+                  <input
+                    type="datetime-local"
+                    name="endAt"
+                    value={formData.endAt}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
+                    required
+                  />
+                </div>
               </div>
 
-              {/* EndAt */}
+              {/* Địa chỉ */}
               <div>
-                <label className="block mb-1">Kết thúc</label>
-                <input
-                  type="datetime-local"
-                  name="endAt"
-                  value={formData.endAt}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
-                  required
-                />
-              </div>
-              {/* Location */}
-              <div>
-                <label className="block mb-1">Địa chỉ</label>
+                <label className="block mb-1 font-semibold">Địa chỉ</label>
                 <input
                   type="text"
                   name="location"
@@ -394,38 +395,61 @@ const EventManagement = () => {
                 />
               </div>
 
-              {/* Capacity */}
-              <div>
-                <label className="block mb-1">Số lượng tối đa</label>
-                <input
-                  type="number"
-                  name="capacity"
-                  value={formData.capacity}
-                  onChange={handleChange}
-                  className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
-                  min={1}
-                />
-              </div>
-
-              {/* Participants count */}
-              {editId && (
+              {/* Số lượng + Trạng thái */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-1">Đã đăng ký</label>
+                  <label className="block mb-1 font-semibold">Số lượng tối đa</label>
                   <input
                     type="number"
-                    value={
-                      events.find((e) => e._id === editId)?.participantsCount ||
-                      0
-                    }
-                    disabled
-                    className="w-full p-2 border rounded bg-gray-200 dark:bg-gray-700 dark:text-white"
+                    name="capacity"
+                    value={formData.capacity}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
+                    min={1}
                   />
                 </div>
-              )}
+                <div>
+                  <label className="block mb-1 font-semibold">Trạng thái</label>
+                  {editId ? (
+                    <select
+                      name="status"
+                      value={formData.status}
+                      onChange={handleChange}
+                      className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
+                    >
+                      {formData.status === "upcoming" && (
+                        <>
+                          <option value="upcoming">Sắp diễn ra</option>
+                          <option value="cancelled">Đã hủy</option>
+                        </>
+                      )}
+                      {formData.status === "ongoing" && (
+                        <>
+                          <option value="ongoing">Đang diễn ra</option>
+                          <option value="finished">Đã kết thúc</option>
+                        </>
+                      )}
+                      {formData.status === "finished" && (
+                        <option value="finished">Đã kết thúc</option>
+                      )}
+                      {formData.status === "cancelled" && (
+                        <option value="cancelled">Đã hủy</option>
+                      )}
+                    </select>
+                  ) : (
+                    <input
+                      type="text"
+                      value="Sắp diễn ra"
+                      disabled
+                      className="w-full p-2 border rounded bg-gray-200 dark:bg-gray-700 dark:text-white"
+                    />
+                  )}
+                </div>
+              </div>
 
-              {/* Description */}
+              {/* Mô tả */}
               <div>
-                <label className="block mb-1">Mô tả</label>
+                <label className="block mb-1 font-semibold">Mô tả</label>
                 <textarea
                   name="description"
                   value={formData.description}
@@ -433,45 +457,6 @@ const EventManagement = () => {
                   className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
                   rows={4}
                 />
-              </div>
-
-              {/* Status rules */}
-              <div>
-                <label className="block mb-1">Trạng thái</label>
-                {editId ? (
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleChange}
-                    className="w-full p-2 border rounded dark:bg-gray-700 dark:text-white"
-                  >
-                    {formData.status === "upcoming" && (
-                      <>
-                        <option value="upcoming">Sắp diễn ra</option>
-                        <option value="cancelled">Đã hủy</option>
-                      </>
-                    )}
-                    {formData.status === "ongoing" && (
-                      <>
-                        <option value="ongoing">Đang diễn ra</option>
-                        <option value="finished">Đã kết thúc</option>
-                      </>
-                    )}
-                    {formData.status === "finished" && (
-                      <option value="finished">Đã kết thúc</option>
-                    )}
-                    {formData.status === "cancelled" && (
-                      <option value="cancelled">Đã hủy</option>
-                    )}
-                  </select>
-                ) : (
-                  <input
-                    type="text"
-                    value="Sắp diễn ra"
-                    disabled
-                    className="w-full p-2 border rounded bg-gray-200 dark:bg-gray-700 dark:text-white"
-                  />
-                )}
               </div>
 
               {/* Buttons */}

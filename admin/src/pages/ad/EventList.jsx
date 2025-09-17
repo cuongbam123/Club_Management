@@ -5,30 +5,38 @@ const EventList = () => {
   const [loading, setLoading] = useState(true);
 
   // Hàm đổi status từ backend -> tiếng Việt + màu
+  // Hàm đổi status từ backend -> tiếng Việt + CSS Tailwind đẹp hơn
   const getStatusInfo = (status) => {
     switch (status) {
       case "upcoming":
         return {
           label: "Sắp diễn ra",
           className:
-            "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
+            "inline-block px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 shadow-sm",
         };
       case "ongoing":
         return {
           label: "Đang diễn ra",
           className:
-            "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
+            "inline-block px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 shadow-sm",
         };
       case "finished":
         return {
           label: "Đã kết thúc",
           className:
-            "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300",
+            "inline-block px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 shadow-sm",
+        };
+      case "cancelled":
+        return {
+          label: "Đã hủy",
+          className:
+            "inline-block px-3 py-1 rounded-full text-sm font-semibold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300 shadow-sm",
         };
       default:
         return {
           label: status,
-          className: "bg-gray-200 text-gray-800",
+          className:
+            "inline-block px-3 py-1 rounded-full text-sm font-semibold bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300 shadow-sm",
         };
     }
   };
